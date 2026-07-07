@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CEO Burada — Canlı Borsa Yayınları & Yönetici Demeçleri</title>
+<style>
+  :root{
+    --bg:#0b0e14; --bg2:#121722; --card:#161c28; --line:#232b3a;
+    --tx:#e7ecf3; --tx2:#9aa7bd; --tx3:#6b7688;
+    --acc:#3ea6ff; --ok:#28c76f; --live:#ff4d4f;
+    --bloomberg:#ff7a00; --cnbce:#3ea6ff; --ekoturk:#ff4d4f; --apara:#12c9a6;
+    /* Demeç listesi için yumuşatılmış kanal tonları (net ama neon değil) */
+    --bloomberg-s:#e0902f; --cnbce-s:#5aa0da; --ekoturk-s:#e26467; --apara-s:#2fb69c;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--tx);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+
+  header{position:sticky;top:0;z-index:20;background:rgba(11,14,20,.9);
+    backdrop-filter:blur(10px)}
+  .bar{max-width:1200px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:.3px}
+  .logo .dot{width:10px;height:10px;border-radius:50%;background:var(--live);box-shadow:0 0 0 0 rgba(255,77,79,.6);
+    animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,77,79,.55)}70%{box-shadow:0 0 0 9px rgba(255,77,79,0)}100%{box-shadow:0 0 0 0 rgba(255,77,79,0)}}
+  .logo small{color:var(--tx3);font-weight:600;font-size:12px;letter-spacing:.5px}
+  .spacer{flex:1}
+  .status{font-size:12px;color:var(--tx3)}
+
+  .tabs{max-width:1200px;margin:0 auto;padding:12px 20px 0;display:flex;gap:8px;flex-wrap:wrap}
+  .tab{padding:5px 15px;border-radius:999px;border:1px solid var(--line);background:var(--bg2);
+    color:var(--tx2);font-weight:600;font-size:14px;cursor:pointer;transition:.15s;user-select:none}
+  .tab:hover{color:var(--tx);border-color:#33405a}
+  .tab.active{color:#08131f;background:var(--acc);border-color:var(--acc)}
+  .tab[data-k="Bloomberg"].active{background:var(--bloomberg);border-color:var(--bloomberg);color:#1a0d00}
+  .tab[data-k="Cnbce"].active{background:var(--cnbce);border-color:var(--cnbce)}
+  .tab[data-k="EkoTurk"].active{background:var(--ekoturk);border-color:var(--ekoturk);color:#1a0000}
+  .tab[data-k="Apara"].active{background:var(--apara);border-color:var(--apara);color:#00140f}
+
+  main{max-width:1200px;margin:0 auto;padding:18px 20px 60px}
+
+  /* Video alanı */
+  #videos{display:grid;gap:6px;grid-template-columns:1fr 1fr}
+  #videos.single{grid-template-columns:1fr}
+  .vid{position:relative;background:#000;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    aspect-ratio:16/9}
+  .vid iframe{width:100%;height:100%;border:0;display:block}
+  .vid .cap{position:absolute;left:10px;top:10px;z-index:2;display:flex;align-items:center;gap:7px;
+    background:rgba(0,0,0,.62);padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;pointer-events:none}
+  .vid .cap .lv{width:7px;height:7px;border-radius:50%;background:var(--live)}
+  .vid.k-Bloomberg .cap{color:var(--bloomberg)} .vid.k-Cnbce .cap{color:var(--cnbce)}
+  .vid.k-EkoTurk .cap{color:var(--ekoturk)} .vid.k-Apara .cap{color:var(--apara)}
+  /* Embed'e izin vermeyen kanal → YouTube'a giden kapak */
+  .vid.ext{cursor:pointer;display:block}
+  .vid.ext .thumb{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.62)}
+  .vid.ext .play{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:2}
+  .vid.ext .play .pico{width:64px;height:64px;border-radius:50%;background:rgba(255,0,0,.9);
+    display:flex;align-items:center;justify-content:center}
+  .vid.ext .play .pico::after{content:"";border-style:solid;border-width:12px 0 12px 20px;border-color:transparent transparent transparent #fff;margin-left:4px}
+  .vid.ext .play .lbl{font-weight:700;font-size:13px;background:rgba(0,0,0,.55);padding:5px 12px;border-radius:999px}
+  .vid.ext:hover .thumb{filter:brightness(.5)}
+  @media(max-width:760px){#videos{grid-template-columns:1fr}}
+
+  /* Demeç akışı */
+  .feedhead{display:flex;align-items:baseline;gap:10px;margin:26px 2px 12px}
+  .feedhead h2{margin:0;font-size:18px;letter-spacing:.2px}
+  .feedhead .cnt{color:var(--tx3);font-size:13px}
+  #feed{display:flex;flex-direction:column;gap:12px}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .rp{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--acc);
+    border-radius:12px;overflow:hidden;animation:rise .3s ease}
+  .rp.k-Bloomberg{border-left-color:var(--bloomberg-s)} .rp.k-Cnbce{border-left-color:var(--cnbce-s)}
+  .rp.k-EkoTurk{border-left-color:var(--ekoturk-s)} .rp.k-Apara{border-left-color:var(--apara-s)}
+  .rphead{display:flex;align-items:center;gap:9px;padding:12px 15px;user-select:none;flex-wrap:wrap}
+  .rp .who{font-weight:800;font-size:14px}
+  .rp .badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--tx2)}
+  .rp .badge.k-Bloomberg{color:var(--bloomberg-s);border-color:#3a2c1e}
+  .rp .badge.k-Cnbce{color:var(--cnbce-s);border-color:#222f3c}
+  .rp .badge.k-EkoTurk{color:var(--ekoturk-s);border-color:#382427}
+  .rp .badge.k-Apara{color:var(--apara-s);border-color:#1f342e}
+  .rp .time{color:var(--tx3);font-size:12px}
+  .rp .meta{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .rp .cnt{color:var(--tx3);font-size:12px}
+  .rp .chev{color:var(--tx2);font-size:16px;line-height:1;transition:.2s}
+  .rp.open .chev{transform:rotate(180deg)}
+  .rp.open .cnt{display:none}
+  .rp:not(.solo){cursor:pointer}
+  .rp:not(.solo):hover{background:#1b2433}
+  .rp .manset{padding:0 15px 13px;color:var(--tx);font-size:15.5px;line-height:1.5;font-style:italic}
+  .rp .cumleler{display:none;flex-direction:column;gap:10px;padding:4px 15px 15px;border-top:1px solid var(--line)}
+  .rp.open .manset{display:none}
+  .rp.open .cumleler{display:flex}
+  .rp .cm{font-size:15px;line-height:1.5;color:var(--tx2)}
+  .rp .cm .cmt{color:var(--tx3);font-size:11px;margin-right:8px;font-variant-numeric:tabular-nums}
+  .rp .cm.mn{color:var(--tx);font-weight:700}
+  .empty{color:var(--tx3);text-align:center;padding:40px;border:1px dashed var(--line);border-radius:12px}
+  footer{max-width:760px;margin:0 auto;padding:26px 20px 40px;color:var(--tx3);font-size:12.5px;line-height:1.6;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo"><span class="dot"></span>CEO&nbsp;Burada <small>BORSAYA KOTE ŞİRKET YÖNETİCİ DEMEÇLERİ</small></div>
+    <div class="spacer"></div>
+    <div class="status" id="status">yükleniyor…</div>
+  </div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-k="all">Tümü</div>
+    <div class="tab" data-k="Bloomberg">Bloomberg</div>
+    <div class="tab" data-k="Cnbce">Cnbce</div>
+    <div class="tab" data-k="EkoTurk">EkoTürk</div>
+    <div class="tab" data-k="Apara">Apara</div>
+  </div>
+</header>
+
+<main>
+  <div id="videos"></div>
+  <div class="feedhead">
+    <h2 id="feedTitle">Son Demeçler</h2>
+  </div>
+  <div id="feed"></div>
+</main>
+<footer>Video yayınları ilgili kanalların resmî YouTube canlı yayınlarından gömülüdür; tüm telif hakları ilgili yayıncılara aittir. CEO Burada, ücretsiz bir yapay zeka destekli tarama ve derleme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.</footer>
+
+<script>
+const SUPABASE_URL = "https://tnvslslbnwkyfxyfgwua.supabase.co";
+const SUPABASE_KEY = "sb_publishable_DhYTkPGL8B48klEfO6caGw_b0SAn93l";
+const KANALLAR = ["Bloomberg","Cnbce","EkoTurk","Apara"];
+const AD = {Bloomberg:"Bloomberg HT", Cnbce:"Cnbce", EkoTurk:"EkoTürk", Apara:"Apara"};
+const EMBED_KAPALI = [];   // (gerçek domain testi) boşsa hepsi inline embed
+
+let secili = "all";
+let canliMap = {};   // kanal -> video_id
+
+const sb = (path) => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}` }
+}).then(r=>r.ok?r.json():[]);
+
+function setStatus(t){ document.getElementById("status").textContent = t; }
+
+/* ---- Videolar ---- */
+function renderVideos(){
+  const box = document.getElementById("videos");
+  const liste = secili==="all" ? KANALLAR : [secili];
+  box.classList.toggle("single", secili!=="all");
+  box.innerHTML = liste.map(k=>{
+    const vid = canliMap[k];
+    if(!vid)
+      return `<div class="vid k-${k}"><div style="display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;height:100%;color:var(--tx3);text-align:center;padding:14px">
+        <div style="font-weight:700;color:var(--tx2)">${AD[k]}</div>
+        <div style="font-size:13px">Şu an canlı yayın yok</div>
+        <div style="font-size:13px">Yayın başladığında tekrar burada yer alacak</div></div></div>`;
+    if(EMBED_KAPALI.includes(k)){
+      // Gömülemiyor → YouTube'a giden kapak
+      return `<a class="vid ext k-${k}" href="https://www.youtube.com/watch?v=${vid}" target="_blank" rel="noopener">
+        <img class="thumb" src="https://i.ytimg.com/vi/${vid}/hqdefault.jpg" alt="${AD[k]} canlı">
+        <div class="play"><div class="pico"></div><div class="lbl">YouTube'da Canlı İzle</div></div>
+      </a>`;
+    }
+    const src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1`;
+    return `<div class="vid k-${k}"><iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
+  }).join("");
+}
+
+/* ---- Röportajlar (accordion) ---- */
+function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function tarih(g){ if(!g) return ""; try{ return new Date(g+"T00:00:00")
+  .toLocaleDateString("tr-TR",{day:"2-digit",month:"short"}); }catch(e){ return g; } }
+
+function cardHTML(r){
+  const n = r.cumle_sayisi||1, solo = n<=1;
+  const extra = solo ? "" :
+    `<span class="meta"><span class="cnt">+${n-1} daha</span><span class="chev">▾</span></span>`;
+  return `<div class="rp k-${esc(r.kanal)}${solo?" solo":""}" data-grup="${esc(r.grup)}" data-manset="${esc(r.manset||"")}">
+    <div class="rphead">
+      <span class="who">${esc(r.etiket||r.kod||"")}</span>
+      <span class="badge k-${esc(r.kanal)}">${esc(AD[r.kanal]||r.kanal)}</span>
+      <span class="time">${tarih(r.gun)}${r.ilk_saat?" · "+esc(r.ilk_saat):""}</span>
+      ${extra}
+    </div>
+    <div class="manset">${esc(r.manset||"")}</div>
+    <div class="cumleler" data-loaded="0"></div>
+  </div>`;
+}
+async function loadCumleler(el){
+  const box = el.querySelector(".cumleler");
+  if(box.dataset.loaded==="1") return;
+  const grup = el.dataset.grup, manset = el.dataset.manset;
+  const rows = await sb(`demecler?grup=eq.${encodeURIComponent(grup)}&select=saat,chunk,cumle&order=chunk.asc,id.asc`);
+  box.innerHTML = rows.map(x=>{
+    const mn = (x.cumle===manset);
+    return `<div class="cm${mn?" mn":""}"><span class="cmt">${esc(x.saat||"")}</span>${esc(x.cumle)}</div>`;
+  }).join("");
+  box.dataset.loaded="1";
+}
+async function ac(el, open){
+  if(open){ await loadCumleler(el); el.classList.add("open"); }
+  else el.classList.remove("open");
+}
+async function loadFeed(){
+  let q = "roportaj?select=grup,kod,etiket,kanal,gun,ilk_saat,manset,cumle_sayisi&order=guncelleme.desc&limit=300";
+  if(secili!=="all") q += `&kanal=eq.${encodeURIComponent(secili)}`;
+  const rows = await sb(q);
+  const feed = document.getElementById("feed");
+  document.getElementById("feedTitle").textContent =
+    secili==="all" ? "Son Demeçler" : `${AD[secili]} — Son Demeçler`;
+  if(!rows.length){ feed.innerHTML = `<div class="empty">Henüz onaylı demeç yok. Yeni açıklamalar geldikçe burada görünecek.</div>`; return; }
+  feed.innerHTML = rows.map(cardHTML).join("");
+  // Her iki modda da accordion kapalı gelir — uzun röportaj alttakileri gizlemesin
+}
+document.getElementById("feed").addEventListener("click", async e=>{
+  const el = e.target.closest(".rp"); if(!el) return;   // balonun HER yeri tıklanabilir
+  if(el.classList.contains("solo")) return;             // tek demeç → tamamen tepkisiz
+  if(String(window.getSelection())) return;             // metin seçildiyse toggle etme
+  await ac(el, !el.classList.contains("open"));
+});
+
+/* ---- Canlı ID'ler ---- */
+async function loadCanli(){
+  const rows = await sb("kanal_canli?select=kanal,video_id");
+  canliMap = {}; rows.forEach(r=>canliMap[r.kanal]=r.video_id);
+  renderVideos();
+}
+
+/* ---- Sekmeler ---- */
+document.getElementById("tabs").addEventListener("click", e=>{
+  const t = e.target.closest(".tab"); if(!t) return;
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");
+  secili = t.dataset.k;
+  renderVideos(); loadFeed();
+});
+
+async function tick(){
+  try{ await loadFeed(); setStatus("güncel · "+new Date().toLocaleTimeString("tr-TR")); }
+  catch(e){ setStatus("bağlantı hatası"); }
+}
+(async function init(){
+  await loadCanli();
+  await tick();
+  setInterval(loadFeed, 30000);      // demeç akışı 30 sn'de bir
+  setInterval(loadCanli, 300000);    // canlı ID'ler 5 dk'da bir
+})();
+</script>
+</body>
+</html>

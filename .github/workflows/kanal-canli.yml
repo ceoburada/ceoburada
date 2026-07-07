@@ -1,0 +1,24 @@
+name: kanal-canli-guncelle
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # her ~10 dakikada bir
+  workflow_dispatch:           # elle de çalıştırılabilir
+
+concurrency:
+  group: kanal-canli
+  cancel-in-progress: false
+
+jobs:
+  guncelle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Kanal canli ID guncelle
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET: ${{ secrets.SUPABASE_SECRET }}
+        run: python scripts/kanal_canli_guncelle.py
