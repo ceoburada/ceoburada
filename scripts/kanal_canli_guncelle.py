@@ -55,16 +55,18 @@ def hala_canli(video_ids):
     return canli
 
 def kanal_canli_ara(cid):
-    """search.list (100 kota) — kanalin su anki canli video ID'si (yoksa None)."""
+    """search.list (100 kota). Doner: (durum, vid).
+    durum='ok'  -> arama basarili; vid= canli video ID ya da None (gercekten yok)
+    durum='hata'-> arama basarisiz (kota/ag); cagiran mevcut degeri KORUMALI."""
     url = (f"{API}/search?part=id&channelId={cid}"
            f"&eventType=live&type=video&maxResults=1&key={YT_KEY}")
     try:
         data = _get_json(url)
     except Exception as e:
         print("search.list hata:", e)
-        return None
+        return ("hata", None)
     items = data.get("items", [])
-    return items[0]["id"]["videoId"] if items else None
+    return ("ok", items[0]["id"]["videoId"] if items else None)
 
 def sb_oku():
     req = urllib.request.Request(
@@ -73,8 +75,9 @@ def sb_oku():
     try:
         data = json.loads(urllib.request.urlopen(req, timeout=20).read())
         return {r["kanal"]: r.get("video_id") for r in data}
-    except Exception:
-        return {}
+    except Exception as e:
+        print("sb_oku hata:", e)
+        return None   # okunamadi -> cagiran kosuyu atlamali (mevcut tabloyu bozma)
 
 def sb_upsert(rows):
     req = urllib.request.Request(
@@ -86,6 +89,9 @@ def sb_upsert(rows):
 
 def main():
     mevcut = sb_oku()
+    if mevcut is None:
+        print("Supabase okunamadi -> kosu atlaniyor (tablo korundu).")
+        return
     canli_set = hala_canli([mevcut.get(ch) for ch in KANAL_ID])
     # KOTA KORUMASI: iki tavan var -> "Queries per day"=10.000 birim VE
     # "Search Queries per day"=100 (search.list cagri sayisi). search.list pahali
@@ -101,9 +107,10 @@ def main():
         if cur and cur in canli_set:
             vid = cur                        # hala canli -> koru (ucuz)
         elif arama_zamani:
-            vid = kanal_canli_ara(cid)       # olmus/bos + arama zamani -> coz (100)
+            durum, yeni = kanal_canli_ara(cid)   # olmus/bos + arama zamani -> coz
+            vid = cur if durum == "hata" else yeni  # arama hatasi -> mevcudu KORU
         else:
-            vid = None                       # olmus, arama zamani degil -> yayin yok
+            vid = None                       # videos.list ONU olu dogruladi -> yayin yok
         rows.append({"kanal": ch, "video_id": vid,
                      "guncelleme": datetime.now(timezone.utc).isoformat()})
         print(f"{ch:10} -> {vid if vid else 'YAYIN YOK (null)'}")
