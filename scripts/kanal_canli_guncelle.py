@@ -87,11 +87,14 @@ def sb_upsert(rows):
 def main():
     mevcut = sb_oku()
     canli_set = hala_canli([mevcut.get(ch) for ch in KANAL_ID])
-    # KOTA KORUMASI: pahali search.list'i (100 birim) her kosuda degil ~30 dk'da
-    # bir yap. Cron :00/:10/.../:50'de tetiklenir; sadece :00 ve :30'da ararariz.
+    # KOTA KORUMASI: iki tavan var -> "Queries per day"=10.000 birim VE
+    # "Search Queries per day"=100 (search.list cagri sayisi). search.list pahali
+    # (100 birim + 1 arama-hakki). Bu yuzden aramayi sadece SAATTE BIR yapariz
+    # (cron :00'da; minute<10 sadece :00 kosusunda true). 4 kanal da gun boyu
+    # kapali olsa bile en fazla 24x4=96 arama/gun -> her iki tavanin da altinda.
     # Canli kanallar yine her 10 dk'da ucuz videos.list ile dogrulanir (1 birim).
-    # Kapali kanalin yeniden canliya donmesi en fazla ~30 dk gecikmeyle yakalanir.
-    arama_zamani = (datetime.now(timezone.utc).minute % 30) < 10
+    # Kapali kanalin canliya donmesi en fazla ~1 saat gecikmeyle yakalanir.
+    arama_zamani = datetime.now(timezone.utc).minute < 10
     rows = []
     for ch, cid in KANAL_ID.items():
         cur = mevcut.get(ch)
