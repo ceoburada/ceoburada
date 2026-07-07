@@ -21,4 +21,5 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET: ${{ secrets.SUPABASE_SECRET }}
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
         run: python scripts/kanal_canli_guncelle.py
