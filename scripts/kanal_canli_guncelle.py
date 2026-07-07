@@ -87,13 +87,20 @@ def sb_upsert(rows):
 def main():
     mevcut = sb_oku()
     canli_set = hala_canli([mevcut.get(ch) for ch in KANAL_ID])
+    # KOTA KORUMASI: pahali search.list'i (100 birim) her kosuda degil ~30 dk'da
+    # bir yap. Cron :00/:10/.../:50'de tetiklenir; sadece :00 ve :30'da ararariz.
+    # Canli kanallar yine her 10 dk'da ucuz videos.list ile dogrulanir (1 birim).
+    # Kapali kanalin yeniden canliya donmesi en fazla ~30 dk gecikmeyle yakalanir.
+    arama_zamani = (datetime.now(timezone.utc).minute % 30) < 10
     rows = []
     for ch, cid in KANAL_ID.items():
         cur = mevcut.get(ch)
         if cur and cur in canli_set:
-            vid = cur                       # hala canli -> koru (ucuz)
+            vid = cur                        # hala canli -> koru (ucuz)
+        elif arama_zamani:
+            vid = kanal_canli_ara(cid)       # olmus/bos + arama zamani -> coz (100)
         else:
-            vid = kanal_canli_ara(cid)      # olmus/bos -> yeniden coz
+            vid = None                       # olmus, arama zamani degil -> yayin yok
         rows.append({"kanal": ch, "video_id": vid,
                      "guncelleme": datetime.now(timezone.utc).isoformat()})
         print(f"{ch:10} -> {vid if vid else 'YAYIN YOK (null)'}")
