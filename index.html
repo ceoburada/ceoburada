@@ -59,8 +59,14 @@
     -webkit-mask-composite:xor;mask-composite:exclude;
     pointer-events:none;animation:vgspin 5s linear infinite}
   @keyframes vgspin{to{--vga:360deg}}
-  body.novideo .col-l{display:none}
-  body.novideo .col-r{max-width:900px;width:100%}
+  body.novideo .col-l,body.arsiv .col-l{display:none}
+  body.novideo .col-r,body.arsiv .col-r{max-width:900px;width:100%}
+  body.arsiv .tabs{display:none}
+  /* Kod bağlantısı (şirket arşivine gider) + geri dön bağlantısı */
+  .kodlink{color:inherit;border-bottom:1px dashed var(--tx3)}
+  .kodlink:hover{color:var(--acc);border-color:var(--acc)}
+  .backlink{color:var(--acc);font-size:13px;font-weight:600}
+  .backlink:hover{text-decoration:underline}
 
   main{max-width:1200px;margin:0 auto;padding:18px 20px 60px}
 
@@ -108,7 +114,7 @@
     .col-l{position:sticky;top:14px}
     .col-r .feedhead{margin-top:0}
     .col-r h2{margin-top:0}
-    body.novideo main{grid-template-columns:1fr}
+    body.novideo main,body.arsiv main{grid-template-columns:1fr}
   }
 
   /* Demeç akışı */
@@ -168,6 +174,7 @@
   <div class="col-l"><div id="videos"></div></div>
   <div class="col-r">
     <div class="feedhead">
+      <a id="backLink" class="backlink" href="./" style="display:none">← Tüm Demeçler</a>
       <h2 id="feedTitle">Son Demeçler</h2>
     </div>
     <div id="feed"></div>
@@ -184,6 +191,7 @@ const EMBED_KAPALI = [];   // (gerçek domain testi) boşsa hepsi inline embed
 
 let secili = "all";
 let canliMap = {};   // kanal -> video_id
+const arsivKod = new URLSearchParams(location.search).get("kod");   // ?kod=RYSAS → şirket arşivi
 
 const sb = (path) => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
   headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}` }
@@ -239,13 +247,19 @@ function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>
 function tarih(g){ if(!g) return ""; try{ return new Date(g+"T00:00:00")
   .toLocaleDateString("tr-TR",{day:"2-digit",month:"short"}); }catch(e){ return g; } }
 
+function whoHTML(r){
+  const kod = r.kod||"", et = r.etiket||kod;
+  const rest = (kod && et.startsWith(kod)) ? et.slice(kod.length) : (kod ? " · "+et : et);
+  if(!kod) return `<span class="who">${esc(et)}</span>`;
+  return `<span class="who"><a class="kodlink" href="?kod=${encodeURIComponent(kod)}" title="${esc(kod)} tüm demeçleri">${esc(kod)}</a>${esc(rest)}</span>`;
+}
 function cardHTML(r){
   const n = r.cumle_sayisi||1, solo = n<=1;
   const extra = solo ? "" :
     `<span class="meta"><span class="cnt">+${n-1} daha</span><span class="chev">▾</span></span>`;
   return `<div class="rp k-${esc(r.kanal)}${solo?" solo":""}" data-grup="${esc(r.grup)}" data-manset="${esc(r.manset||"")}">
     <div class="rphead">
-      <span class="who">${esc(r.etiket||r.kod||"")}</span>
+      ${whoHTML(r)}
       <span class="badge k-${esc(r.kanal)}">${esc(AD[r.kanal]||r.kanal)}</span>
       <span class="time">${tarih(r.gun)}${r.ilk_saat?" · "+esc(r.ilk_saat):""}</span>
       ${extra}
@@ -270,24 +284,35 @@ async function ac(el, open){
   else el.classList.remove("open");
 }
 let sonFeedImza = "";
+const SEL = "grup,kod,etiket,kanal,gun,ilk_saat,manset,cumle_sayisi";
 async function loadFeed(){
-  // Tümü: son 10 röportaj · tek kanal: son 5 röportaj (sayfa taze ve kısa kalsın)
-  const lim = secili==="all" ? 10 : 5;
-  let q = `roportaj?select=grup,kod,etiket,kanal,gun,ilk_saat,manset,cumle_sayisi&order=guncelleme.desc&limit=${lim}`;
-  if(secili!=="all") q += `&kanal=eq.${encodeURIComponent(secili)}`;
+  let q, baslik, bosMesaj;
+  if(arsivKod){
+    // Şirket arşivi: o koda ait TÜM röportajlar (limitsiz), en yeni üstte
+    q = `roportaj?kod=eq.${encodeURIComponent(arsivKod)}&select=${SEL}&order=gun.desc,ilk_saat.desc`;
+    baslik = `${arsivKod} · Tüm Demeçler`;
+    bosMesaj = "Bu şirkete ait onaylı demeç bulunamadı.";
+  } else {
+    // Tümü: son 10 röportaj · tek kanal: son 5 (sayfa taze ve kısa kalsın)
+    const lim = secili==="all" ? 10 : 5;
+    q = `roportaj?select=${SEL}&order=guncelleme.desc&limit=${lim}`;
+    if(secili!=="all") q += `&kanal=eq.${encodeURIComponent(secili)}`;
+    baslik = secili==="all" ? "Son Demeçler" : `${AD[secili]} — Son Demeçler`;
+    bosMesaj = "Henüz onaylı demeç yok. Yeni açıklamalar geldikçe burada görünecek.";
+  }
   const rows = await sb(q);
   const feed = document.getElementById("feed");
-  document.getElementById("feedTitle").textContent =
-    secili==="all" ? "Son Demeçler" : `${AD[secili]} — Son Demeçler`;
+  document.getElementById("feedTitle").textContent = baslik;
   // Veri değişmediyse DOM'a dokunma — açık akordiyon kapanmasın, sayfa oynamasın
-  const imza = JSON.stringify([secili, rows]);
+  const imza = JSON.stringify([arsivKod||secili, rows]);
   if(imza === sonFeedImza) return;
   sonFeedImza = imza;
-  if(!rows.length){ feed.innerHTML = `<div class="empty">Henüz onaylı demeç yok. Yeni açıklamalar geldikçe burada görünecek.</div>`; return; }
+  if(!rows.length){ feed.innerHTML = `<div class="empty">${bosMesaj}</div>`; return; }
   feed.innerHTML = rows.map(cardHTML).join("");
   // Her iki modda da accordion kapalı gelir — uzun röportaj alttakileri gizlemesin
 }
 document.getElementById("feed").addEventListener("click", async e=>{
+  if(e.target.closest("a")) return;                     // kod linki → sayfa yönlensin, toggle etme
   const el = e.target.closest(".rp"); if(!el) return;   // balonun HER yeri tıklanabilir
   if(el.classList.contains("solo")) return;             // tek demeç → tamamen tepkisiz
   if(String(window.getSelection())) return;             // metin seçildiyse toggle etme
@@ -325,6 +350,13 @@ async function tick(){
   catch(e){ setStatus("bağlantı hatası"); }
 }
 (async function init(){
+  if(arsivKod){                      // ── ŞİRKET ARŞİVİ MODU (?kod=X) ──
+    document.body.classList.add("arsiv");
+    document.getElementById("backLink").style.display = "";
+    await tick();
+    setInterval(loadFeed, 60000);    // arşiv geçmiş veri → seyrek tazeleme yeter
+    return;                          // video/canlı-ID mantığı çalışmaz
+  }
   applyVideoGizli();                 // kayıtlı tercih (gizli/görünür) baştan uygulanır
   await loadCanli();
   await tick();
