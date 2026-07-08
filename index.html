@@ -36,6 +36,7 @@
   .logo small{color:var(--tx3);font-weight:600;font-size:12px;letter-spacing:.5px}
   /* Mobil header: marka + tagline dikey istif, sola dayalı (kaos biter) */
   @media(max-width:600px){
+    header{position:static}   /* mobilde üst bant sabit değil, içerikle birlikte kayar */
     .bar{padding:12px 16px}
     .logo{flex-direction:column;align-items:flex-start;gap:2px}
     .logo small{font-size:11px;letter-spacing:.3px}
