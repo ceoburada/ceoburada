@@ -214,6 +214,7 @@ async function ac(el, open){
   if(open){ await loadCumleler(el); el.classList.add("open"); }
   else el.classList.remove("open");
 }
+let sonFeedImza = "";
 async function loadFeed(){
   // Tümü: son 10 röportaj · tek kanal: son 5 röportaj (sayfa taze ve kısa kalsın)
   const lim = secili==="all" ? 10 : 5;
@@ -223,6 +224,10 @@ async function loadFeed(){
   const feed = document.getElementById("feed");
   document.getElementById("feedTitle").textContent =
     secili==="all" ? "Son Demeçler" : `${AD[secili]} — Son Demeçler`;
+  // Veri değişmediyse DOM'a dokunma — açık akordiyon kapanmasın, sayfa oynamasın
+  const imza = JSON.stringify([secili, rows]);
+  if(imza === sonFeedImza) return;
+  sonFeedImza = imza;
   if(!rows.length){ feed.innerHTML = `<div class="empty">Henüz onaylı demeç yok. Yeni açıklamalar geldikçe burada görünecek.</div>`; return; }
   feed.innerHTML = rows.map(cardHTML).join("");
   // Her iki modda da accordion kapalı gelir — uzun röportaj alttakileri gizlemesin
@@ -237,8 +242,12 @@ document.getElementById("feed").addEventListener("click", async e=>{
 /* ---- Canlı ID'ler ---- */
 async function loadCanli(){
   const rows = await sb("kanal_canli?select=kanal,video_id");
-  canliMap = {}; rows.forEach(r=>canliMap[r.kanal]=r.video_id);
-  renderVideos();
+  const yeni = {}; rows.forEach(r=>yeni[r.kanal]=r.video_id);
+  // Sadece ID'ler GERÇEKTEN değiştiyse yeniden çiz — yoksa embed'lere dokunma
+  // (izlenen yayın kesilmesin, video başa dönmesin)
+  if(JSON.stringify(yeni) !== JSON.stringify(canliMap)){
+    canliMap = yeni; renderVideos();
+  }
 }
 
 /* ---- Sekmeler ---- */
