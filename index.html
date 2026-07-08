@@ -42,6 +42,11 @@
   .tab[data-k="Cnbce"].active{background:var(--cnbce);border-color:var(--cnbce)}
   .tab[data-k="EkoTurk"].active{background:var(--ekoturk);border-color:var(--ekoturk);color:#1a0000}
   .tab[data-k="Apara"].active{background:var(--apara);border-color:var(--apara);color:#00140f}
+  /* Yayınları gizle/göster (mobil veri tasarrufu + salt okuma modu) */
+  .vgiz{margin-left:auto;border-style:dashed;color:var(--tx3)}
+  .vgiz:hover{color:var(--tx)}
+  body.novideo .col-l{display:none}
+  body.novideo .col-r{max-width:900px;margin:0 auto;width:100%}
 
   main{max-width:1200px;margin:0 auto;padding:18px 20px 60px}
 
@@ -77,6 +82,7 @@
     .col-l{position:sticky;top:14px}
     .col-r .feedhead{margin-top:0}
     .col-r h2{margin-top:0}
+    body.novideo main{grid-template-columns:1fr}
   }
 
   /* Demeç akışı */
@@ -128,6 +134,7 @@
     <div class="tab" data-k="Cnbce">Cnbce</div>
     <div class="tab" data-k="EkoTurk">EkoTürk</div>
     <div class="tab" data-k="Apara">Apara</div>
+    <div class="tab vgiz" id="vidToggle">Yayınları Gizle</div>
   </div>
 </header>
 
@@ -178,10 +185,27 @@ function tileHTML(k){
 }
 function renderVideos(){
   const box = document.getElementById("videos");
+  if(videoGizli){ box.innerHTML = ""; return; }   // gizli mod: iframe yok = veri akışı yok
   const liste = secili==="all" ? KANALLAR : [secili];
   box.classList.toggle("single", secili!=="all");
   box.innerHTML = liste.map(tileHTML).join("");
 }
+
+/* ---- Yayınları gizle/göster (mobil veri tasarrufu) ---- */
+let videoGizli = localStorage.getItem("videoGizli")==="1";
+function applyVideoGizli(){
+  document.body.classList.toggle("novideo", videoGizli);
+  document.getElementById("vidToggle").textContent =
+    videoGizli ? "Yayınları Göster" : "Yayınları Gizle";
+  // İlk açılışta canlı ID'ler henüz yüklenmediyse çizimi loadCanli yapar
+  // ("yayın yok" kartlarının anlık parlamasını önler)
+  if(videolarCizildi || videoGizli) renderVideos();
+}
+document.getElementById("vidToggle").addEventListener("click", ()=>{
+  videoGizli = !videoGizli;
+  localStorage.setItem("videoGizli", videoGizli ? "1" : "0");
+  applyVideoGizli();
+});
 
 /* ---- Röportajlar (accordion) ---- */
 function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -262,7 +286,7 @@ async function loadCanli(){
 
 /* ---- Sekmeler ---- */
 document.getElementById("tabs").addEventListener("click", e=>{
-  const t = e.target.closest(".tab"); if(!t) return;
+  const t = e.target.closest(".tab"); if(!t || !t.dataset.k) return;
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
   t.classList.add("active");
   secili = t.dataset.k;
@@ -274,6 +298,7 @@ async function tick(){
   catch(e){ setStatus("bağlantı hatası"); }
 }
 (async function init(){
+  applyVideoGizli();                 // kayıtlı tercih (gizli/görünür) baştan uygulanır
   await loadCanli();
   await tick();
   setInterval(loadFeed, 30000);      // demeç akışı 30 sn'de bir
