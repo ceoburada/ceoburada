@@ -238,7 +238,7 @@ function tileHTML(k){
   }
   // Kontroller AÇIK (controls=1) ama üstteki .shield fareyi yakalar → YouTube
   // kontrolleri gizli kalır; tile'a gelince kalkan geçirgen olur → kontroller çıkar
-  const src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1`;
+  const src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
   return `<div class="vid k-${k}" data-k="${k}"><iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
 }
 function renderVideos(){
@@ -247,13 +247,23 @@ function renderVideos(){
   box.innerHTML = KANALLAR.map(tileHTML).join("");   // HER ZAMAN 4 kanal (canlı kalsın)
   uygulaGorunum();
 }
+function ytCmd(ifr, func){   // YouTube iframe'e komut (enablejsapi=1 gerekli)
+  try{ ifr.contentWindow.postMessage(JSON.stringify({event:"command",func,args:[]}), "*"); }catch(e){}
+}
 function uygulaGorunum(){
   // Sekme değişince iframe'leri YENİDEN KURMA — sadece görünürlüğü aç/kapat.
   // Seçilen kanal zaten oynuyor → 0 ms geçiş, siyah ekran yok.
+  // Tek-kanal modunda gizli 3 kanal DURAKLATILIR (veri akışı durur, tasarruf);
+  // Tümü'ye dönünce hepsi tekrar oynatılır.
   const box = document.getElementById("videos");
   const tek = secili !== "all";
   box.classList.toggle("single", tek);
-  box.querySelectorAll(".vid").forEach(v => v.classList.toggle("sel", tek && v.dataset.k === secili));
+  box.querySelectorAll(".vid").forEach(v => {
+    const sel = tek && v.dataset.k === secili;
+    v.classList.toggle("sel", sel);
+    const ifr = v.querySelector("iframe");
+    if(ifr) ytCmd(ifr, (!tek || sel) ? "playVideo" : "pauseVideo");
+  });
 }
 
 /* ---- Yayınları gizle/göster (mobil veri tasarrufu) ---- */
