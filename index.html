@@ -25,12 +25,13 @@
   header{position:sticky;top:0;z-index:20;background:rgba(11,14,20,.9);
     backdrop-filter:blur(10px)}
   .bar{max-width:1200px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .logo{display:flex;align-items:baseline;gap:6px;font-weight:800;font-size:20px;letter-spacing:.3px}
-  .logo .dot{align-self:center;position:relative;top:1.3px}  /* büyük harflerin görsel merkezine oturt */
-  /* Canlı yayın noktası: yanıp sönen kırmızı yuvarlak */
-  .logo .dot{width:10px;height:10px;border-radius:50%;background:var(--live);
-    box-shadow:0 0 0 0 rgba(255,77,79,.6);animation:pulse 1.8s infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,77,79,.55)}70%{box-shadow:0 0 0 9px rgba(255,77,79,0)}100%{box-shadow:0 0 0 0 rgba(255,77,79,0)}}
+  .logo{display:flex;align-items:center;gap:3px;font-weight:800;font-size:20px;letter-spacing:.3px}
+  /* Canlı yayın mikrofonu: ızgaralı kafa + içinde nefes alan ON-AIR ışığı */
+  .logo .mic{flex:none;margin-top:1px}
+  .logo .mic .cekirdek{animation:nefes 1.8s ease-in-out infinite}
+  .logo .mic .halka{animation:halka 1.8s ease-out infinite;transform-origin:80px 52px;transform-box:view-box}
+  @keyframes nefes{0%,100%{opacity:.6}50%{opacity:1}}
+  @keyframes halka{0%{transform:scale(1);opacity:.5}70%{transform:scale(1.7);opacity:0}100%{transform:scale(1.7);opacity:0}}
   .logo small{color:var(--tx3);font-weight:600;font-size:12px;letter-spacing:.5px}
   .spacer{flex:1}
   .status{font-size:12px;color:var(--tx3)}
@@ -148,7 +149,7 @@
 <body>
 <header>
   <div class="bar">
-    <div class="logo"><span class="dot"></span>CEO&nbsp;Burada <small>BORSAYA KOTE ŞİRKETLERİN YÖNETİCİ DEMEÇLERİ</small></div>
+    <div class="logo"><svg class="mic" width="30" height="36" viewBox="0 0 160 200" aria-hidden="true"><defs><radialGradient id="mtop" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#525b6e"/><stop offset=".55" stop-color="#2c3342"/><stop offset="1" stop-color="#171c26"/></radialGradient><linearGradient id="mgovde" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1b2029"/><stop offset=".35" stop-color="#3d4557"/><stop offset=".5" stop-color="#525b6e"/><stop offset=".65" stop-color="#3d4557"/><stop offset="1" stop-color="#171b24"/></linearGradient><linearGradient id="mbilezik" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4a5263"/><stop offset=".5" stop-color="#8b95a8"/><stop offset="1" stop-color="#3a4150"/></linearGradient><radialGradient id="mkor" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ff8a8c"/><stop offset=".55" stop-color="#ff4d4f"/><stop offset="1" stop-color="#ff4d4f" stop-opacity="0"/></radialGradient><pattern id="mmesh" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1.15" fill="#5c6579" opacity=".8"/></pattern><clipPath id="mtopclip"><circle cx="80" cy="52" r="34"/></clipPath></defs><g transform="rotate(-24 80 100)"><circle class="halka" cx="80" cy="52" r="26" fill="none" stroke="#ff4d4f" stroke-width="3"/><path d="M67 92 L93 92 L88 178 Q80 186 72 178 Z" fill="url(#mgovde)"/><path d="M72.5 172 L87.5 172 L86.8 179 Q80 186 73.2 179 Z" fill="#12151c"/><rect x="63" y="84" width="34" height="10" rx="4" fill="url(#mbilezik)"/><circle cx="80" cy="52" r="34" fill="url(#mtop)"/><circle class="cekirdek" cx="80" cy="52" r="26" fill="url(#mkor)"/><g clip-path="url(#mtopclip)"><rect x="42" y="14" width="76" height="76" fill="url(#mmesh)"/></g><circle cx="80" cy="52" r="34" fill="none" stroke="#0d1017" stroke-width="1.6"/><path d="M52 40 A 34 34 0 0 1 74 19" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="3.5" stroke-linecap="round"/></g></svg>CEOBurada <small>BORSAYA KOTE ŞİRKETLERİN YÖNETİCİ DEMEÇLERİ</small></div>
     <div class="spacer"></div>
     <div class="status" id="status">yükleniyor…</div>
   </div>
