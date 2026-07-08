@@ -45,6 +45,9 @@
   /* Yayınları gizle/göster (mobil veri tasarrufu + salt okuma modu) */
   .vgiz{border-style:dashed;color:var(--tx3)}
   .vgiz:hover{color:var(--tx)}
+  /* Yayınlar gizliyken düğme parlak: basılı olduğu belli olsun, unutan fark etsin */
+  .vgiz.on{border-style:solid;background:var(--acc);border-color:var(--acc);color:#08131f}
+  .vgiz.on:hover{color:#08131f;filter:brightness(1.1)}
   body.novideo .col-l{display:none}
   body.novideo .col-r{max-width:900px;width:100%}
 
@@ -195,8 +198,9 @@ function renderVideos(){
 let videoGizli = localStorage.getItem("videoGizli")==="1";
 function applyVideoGizli(){
   document.body.classList.toggle("novideo", videoGizli);
-  document.getElementById("vidToggle").textContent =
-    videoGizli ? "Yayınları Göster" : "Yayınları Gizle";
+  const btn = document.getElementById("vidToggle");
+  btn.textContent = videoGizli ? "Yayınları Göster" : "Yayınları Gizle";
+  btn.classList.toggle("on", videoGizli);
   // İlk açılışta canlı ID'ler henüz yüklenmediyse çizimi loadCanli yapar
   // ("yayın yok" kartlarının anlık parlamasını önler)
   if(videolarCizildi || videoGizli) renderVideos();
