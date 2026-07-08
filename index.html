@@ -156,27 +156,28 @@ const sb = (path) => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
 function setStatus(t){ document.getElementById("status").textContent = t; }
 
 /* ---- Videolar ---- */
+function tileHTML(k){
+  const vid = canliMap[k];
+  if(!vid)
+    return `<div class="vid k-${k}" data-k="${k}"><div style="display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;height:100%;color:var(--tx3);text-align:center;padding:14px">
+      <div style="font-weight:700;color:var(--tx2)">${AD[k]}</div>
+      <div style="font-size:13px">Şu an canlı yayın yok</div>
+      <div style="font-size:13px">Yayın başladığında tekrar burada yer alacak</div></div></div>`;
+  if(EMBED_KAPALI.includes(k)){
+    // Gömülemiyor → YouTube'a giden kapak
+    return `<a class="vid ext k-${k}" data-k="${k}" href="https://www.youtube.com/watch?v=${vid}" target="_blank" rel="noopener">
+      <img class="thumb" src="https://i.ytimg.com/vi/${vid}/hqdefault.jpg" alt="${AD[k]} canlı">
+      <div class="play"><div class="pico"></div><div class="lbl">YouTube'da Canlı İzle</div></div>
+    </a>`;
+  }
+  const src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1`;
+  return `<div class="vid k-${k}" data-k="${k}"><iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
+}
 function renderVideos(){
   const box = document.getElementById("videos");
   const liste = secili==="all" ? KANALLAR : [secili];
   box.classList.toggle("single", secili!=="all");
-  box.innerHTML = liste.map(k=>{
-    const vid = canliMap[k];
-    if(!vid)
-      return `<div class="vid k-${k}"><div style="display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;height:100%;color:var(--tx3);text-align:center;padding:14px">
-        <div style="font-weight:700;color:var(--tx2)">${AD[k]}</div>
-        <div style="font-size:13px">Şu an canlı yayın yok</div>
-        <div style="font-size:13px">Yayın başladığında tekrar burada yer alacak</div></div></div>`;
-    if(EMBED_KAPALI.includes(k)){
-      // Gömülemiyor → YouTube'a giden kapak
-      return `<a class="vid ext k-${k}" href="https://www.youtube.com/watch?v=${vid}" target="_blank" rel="noopener">
-        <img class="thumb" src="https://i.ytimg.com/vi/${vid}/hqdefault.jpg" alt="${AD[k]} canlı">
-        <div class="play"><div class="pico"></div><div class="lbl">YouTube'da Canlı İzle</div></div>
-      </a>`;
-    }
-    const src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1`;
-    return `<div class="vid k-${k}"><iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
-  }).join("");
+  box.innerHTML = liste.map(tileHTML).join("");
 }
 
 /* ---- Röportajlar (accordion) ---- */
@@ -240,14 +241,20 @@ document.getElementById("feed").addEventListener("click", async e=>{
 });
 
 /* ---- Canlı ID'ler ---- */
+let videolarCizildi = false;
 async function loadCanli(){
   const rows = await sb("kanal_canli?select=kanal,video_id");
   const yeni = {}; rows.forEach(r=>yeni[r.kanal]=r.video_id);
-  // Sadece ID'ler GERÇEKTEN değiştiyse yeniden çiz — yoksa embed'lere dokunma
-  // (izlenen yayın kesilmesin, video başa dönmesin)
-  if(JSON.stringify(yeni) !== JSON.stringify(canliMap)){
-    canliMap = yeni; renderVideos();
-  }
+  const degisen = KANALLAR.filter(k=>yeni[k]!==canliMap[k]);
+  canliMap = yeni;
+  if(!videolarCizildi){ renderVideos(); videolarCizildi = true; return; }
+  if(!degisen.length) return;            // değişiklik yok → embed'lere dokunma
+  // SADECE değişen kanalın karesini tazele — diğer yayınlar (geri sarılmış
+  // olsa bile) kesintisiz devam eder
+  degisen.forEach(k=>{
+    const el = document.querySelector(`#videos [data-k="${k}"]`);
+    if(el) el.outerHTML = tileHTML(k);
+  });
 }
 
 /* ---- Sekmeler ---- */
