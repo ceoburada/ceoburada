@@ -41,6 +41,10 @@
     .logo small{font-size:11px;letter-spacing:.3px}
     .tabs{padding:10px 16px 0;gap:6px}
     .tab{padding:5px 12px;font-size:13px}
+    /* Arama kutusu başlığın altında tam genişlik (başlık sarmaz).
+       .feedhead .search → temel .search kuralını özgüllükle ezer (kaynak sırası fark etmez) */
+    .feedhead{flex-wrap:wrap}
+    .feedhead .search{margin-left:0;width:100%;max-width:none}
   }
 
   .tabs{max-width:1200px;margin:0 auto;padding:12px 20px 0;display:flex;gap:8px;flex-wrap:wrap}
@@ -68,8 +72,10 @@
   body.novideo .col-l{display:none}
   body.novideo .col-r{max-width:900px;width:100%}
   /* Şirket kodu arama kutusu (Son Demeçler başlığının yanında) */
-  .search{margin-left:auto;background:var(--bg2);border:1px solid var(--line);border-radius:999px;
-    color:var(--tx);font-size:13px;padding:6px 14px;outline:none;width:240px;max-width:52vw;text-transform:uppercase}
+  .search{margin-left:auto;border:1px solid var(--line);border-radius:999px;
+    color:var(--tx);font-size:13px;padding:6px 14px 6px 32px;outline:none;width:240px;max-width:56vw;text-transform:uppercase;
+    background:var(--bg2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7688' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cline x1='15.4' y1='15.4' x2='21' y2='21'/%3E%3C/svg%3E") no-repeat 11px center;
+    background-size:14px}
   .search:focus{border-color:var(--acc)}
   .search::placeholder{color:var(--tx3);text-transform:none}
 
