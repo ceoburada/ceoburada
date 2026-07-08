@@ -286,7 +286,8 @@ document.getElementById("vidToggle").addEventListener("click", ()=>{
 /* ---- Röportajlar (accordion) ---- */
 function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function tarih(g){ if(!g) return ""; try{ return new Date(g+"T00:00:00")
-  .toLocaleDateString("tr-TR",{day:"2-digit",month:"short"}); }catch(e){ return g; } }
+  .toLocaleDateString("tr-TR",{day:"2-digit",month:"short",year:"numeric"}); }catch(e){ return g; } }
+function saatKisa(s){ return (s||"").replace(/^(\d{1,2}:\d{2}):\d{2}/, "$1"); }   // saniyeyi at: 14:30:45 → 14:30
 
 function cardHTML(r){
   const n = r.cumle_sayisi||1, solo = n<=1;
@@ -296,7 +297,7 @@ function cardHTML(r){
     <div class="rphead">
       <span class="who">${esc(r.etiket||r.kod||"")}</span>
       <span class="badge k-${esc(r.kanal)}">${esc(AD[r.kanal]||r.kanal)}</span>
-      <span class="time">${tarih(r.gun)}${r.ilk_saat?" · "+esc(r.ilk_saat):""}</span>
+      <span class="time">${tarih(r.gun)}${r.ilk_saat?" · "+esc(saatKisa(r.ilk_saat)):""}</span>
       ${extra}
     </div>
     <div class="manset">${esc(r.manset||"")}</div>
@@ -310,7 +311,7 @@ async function loadCumleler(el){
   const rows = await sb(`demecler?grup=eq.${encodeURIComponent(grup)}&select=saat,chunk,cumle&order=chunk.asc,id.asc`);
   box.innerHTML = rows.map(x=>{
     const mn = (x.cumle===manset);
-    return `<div class="cm${mn?" mn":""}"><span class="cmt">${esc(x.saat||"")}</span>${esc(x.cumle)}</div>`;
+    return `<div class="cm${mn?" mn":""}"><span class="cmt">${esc(saatKisa(x.saat))}</span>${esc(x.cumle)}</div>`;
   }).join("");
   box.dataset.loaded="1";
 }
@@ -398,7 +399,7 @@ document.getElementById("tabs").addEventListener("click", e=>{
 })();
 
 async function tick(){
-  try{ await loadFeed(); setStatus("güncel · "+new Date().toLocaleTimeString("tr-TR")); }
+  try{ await loadFeed(); setStatus("güncel · "+new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})); }
   catch(e){ setStatus("bağlantı hatası"); }
 }
 (async function init(){
