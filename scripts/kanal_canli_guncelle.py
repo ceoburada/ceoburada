@@ -1,21 +1,26 @@
 """
 kanal_canli_guncelle.py — GitHub Actions'ta zamanlanmis calisir (7/24).
-YouTube Data API v3 ile kanallarin o anki CANLI yayin video ID'sini bulur,
-Supabase kanal_canli tablosunu gunceller. Yayin yoksa null yazar.
+YouTube Data API v3 + kanal RSS beslemesi ile kanallarin o anki CANLI yayin
+video ID'sini bulur, Supabase kanal_canli tablosunu gunceller.
 
 Neden API? YouTube, datacenter IP'lerine (GitHub Actions) bot/consent duvari
-gosterip HTML kazimayi engelliyor. Resmi API bu engele takilmaz.
+gosterip HTML kazimayi engelliyor. Resmi API + RSS bu engele takilmaz.
 
-Akilli/ucuz kota kullanimi:
-  - Her kosuda TEK videos.list cagrisi (1 kota) ile mevcut ID'lerin hala canli
-    olup olmadigina bakilir.
-  - Sadece olmus/bos olan kanal icin search.list (100 kota) yapilir.
-  - Yayinlar sabitken gunluk ~150 kota (gunluk ucretsiz limit 10.000).
+Strateji (GitHub cron DUZENSIZ calisabilir — hepsi buna dayanikli):
+  1. RSS beslemesi (KOTA YOK): kanalin son videolari -> canli adaylari.
+  2. TEK videos.list (1 kota): mevcut ID'ler + RSS adaylari hala/yeni canli mi.
+     -> yeni baslayan yayin, pahali arama olmadan ilk kosuda yakalanir.
+  3. search.list (100 kota + gunluk 100 arama tavani) SADECE yedek:
+     canli aday yoksa ve son karardan >= ARAMA_ARALIK_DK gectiyse.
+     Zaman esigi tabloda kayitli 'guncelleme' alanina gore (duvar saati degil).
 
-Sadece Python stdlib kullanir. Ortam degiskenleri:
-  SUPABASE_URL, SUPABASE_SECRET, YT_API_KEY  (GitHub repo secrets).
+Defansif: hicbir gecici hata (Supabase okuma / videos.list / search.list)
+mevcut sagliki linki null'a dusuremez. null SADECE "gercekten yayin yok"
+kesinlesince yazilir.
+
+Sadece Python stdlib. Ortam: SUPABASE_URL, SUPABASE_SECRET, YT_API_KEY.
 """
-import os, json, urllib.request
+import os, re, json, urllib.request
 from datetime import datetime, timezone
 
 SUPABASE_URL    = os.environ["SUPABASE_URL"].rstrip("/")
@@ -23,6 +28,8 @@ SUPABASE_SECRET = os.environ["SUPABASE_SECRET"]
 YT_KEY          = os.environ["YT_API_KEY"]
 
 API = "https://www.googleapis.com/youtube/v3"
+ARAMA_ARALIK_DK = 65   # olu kanal icin yedek search.list en erken bu arayla
+                       # (gunluk "Search Queries per day"=100 tavanina uyum)
 
 # Kalici kanal ID'leri
 KANAL_ID = {
@@ -32,36 +39,48 @@ KANAL_ID = {
     "EkoTurk":   "UCAGVKxpAKwXMWdmcHbrvcwQ",
 }
 
-def _get_json(url, timeout=20):
-    req = urllib.request.Request(url, headers={"Accept": "application/json"})
+def _get(url, timeout=20):
+    req = urllib.request.Request(url, headers={
+        "User-Agent": "Mozilla/5.0", "Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read())
+        return r.read()
 
-def hala_canli(video_ids):
-    """videos.list (1 kota) — verilen ID'lerden HALA canli olanlarin kumesi."""
-    ids = [v for v in video_ids if v]
+def rss_video_ids(cid):
+    """Kanal RSS beslemesi (kota YOK, datacenter'da da erisilir) -> son video ID'leri."""
+    try:
+        xml = _get(f"https://www.youtube.com/feeds/videos.xml?channel_id={cid}").decode("utf-8", "ignore")
+        return re.findall(r"<yt:videoId>([A-Za-z0-9_-]{11})</yt:videoId>", xml)[:10]
+    except Exception as e:
+        print(f"rss hata ({cid}):", e)
+        return []
+
+def canli_kumesi(video_ids):
+    """TEK videos.list (1 kota, <=50 id) -> {channelId: {canli vid,...}}.
+    None donerse cagri BASARISIZ (kota/ag) -> kosu atlanmali, tablo korunmali."""
+    ids = [v for v in dict.fromkeys(video_ids) if v][:50]
     if not ids:
-        return set()
+        return {}
     url = f"{API}/videos?part=snippet&id={','.join(ids)}&key={YT_KEY}"
     try:
-        data = _get_json(url)
+        data = json.loads(_get(url))
     except Exception as e:
         print("videos.list hata:", e)
-        return set(ids)   # emin degiliz -> mevcutu koru, null'a dusurme
-    canli = set()
+        return None
+    canli = {}
     for it in data.get("items", []):
-        if it.get("snippet", {}).get("liveBroadcastContent") == "live":
-            canli.add(it["id"])
+        sn = it.get("snippet", {})
+        if sn.get("liveBroadcastContent") == "live":
+            canli.setdefault(sn.get("channelId"), set()).add(it["id"])
     return canli
 
 def kanal_canli_ara(cid):
-    """search.list (100 kota). Doner: (durum, vid).
+    """YEDEK search.list (100 kota). Doner: (durum, vid).
     durum='ok'  -> arama basarili; vid= canli video ID ya da None (gercekten yok)
     durum='hata'-> arama basarisiz (kota/ag); cagiran mevcut degeri KORUMALI."""
     url = (f"{API}/search?part=id&channelId={cid}"
            f"&eventType=live&type=video&maxResults=1&key={YT_KEY}")
     try:
-        data = _get_json(url)
+        data = json.loads(_get(url))
     except Exception as e:
         print("search.list hata:", e)
         return ("hata", None)
@@ -70,14 +89,14 @@ def kanal_canli_ara(cid):
 
 def sb_oku():
     req = urllib.request.Request(
-        f"{SUPABASE_URL}/rest/v1/kanal_canli?select=kanal,video_id",
+        f"{SUPABASE_URL}/rest/v1/kanal_canli?select=kanal,video_id,guncelleme",
         headers={"apikey": SUPABASE_SECRET, "Authorization": f"Bearer {SUPABASE_SECRET}"})
     try:
         data = json.loads(urllib.request.urlopen(req, timeout=20).read())
-        return {r["kanal"]: r.get("video_id") for r in data}
+        return {r["kanal"]: r for r in data}
     except Exception as e:
         print("sb_oku hata:", e)
-        return None   # okunamadi -> cagiran kosuyu atlamali (mevcut tabloyu bozma)
+        return None   # okunamadi -> kosu atlanmali (mevcut tabloyu bozma)
 
 def sb_upsert(rows):
     req = urllib.request.Request(
@@ -87,35 +106,74 @@ def sb_upsert(rows):
                  "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates"})
     urllib.request.urlopen(req, timeout=30).read()
 
+def arama_gerek(gunc_str, now):
+    """Yedek aramaya izin var mi? Tabloda kayitli son karar zamanina bakar
+    (duvar saati DEGIL -> GitHub cron'u duzensiz calissa da dogru davranir)."""
+    if not gunc_str:
+        return True
+    try:
+        t = datetime.fromisoformat(gunc_str)
+    except Exception:
+        return True
+    if t.tzinfo is None:
+        t = t.replace(tzinfo=timezone.utc)
+    fark = (now - t).total_seconds()
+    if fark < 0:
+        # gelecekte gorunen damga: watcher'in eski surumu yerel saati UTC diye
+        # yazmis olabilir -> taze kabul et, arama hakki harcama
+        return False
+    return fark >= ARAMA_ARALIK_DK * 60
+
 def main():
     mevcut = sb_oku()
     if mevcut is None:
         print("Supabase okunamadi -> kosu atlaniyor (tablo korundu).")
         return
-    canli_set = hala_canli([mevcut.get(ch) for ch in KANAL_ID])
-    # KOTA KORUMASI: iki tavan var -> "Queries per day"=10.000 birim VE
-    # "Search Queries per day"=100 (search.list cagri sayisi). search.list pahali
-    # (100 birim + 1 arama-hakki). Bu yuzden aramayi sadece SAATTE BIR yapariz
-    # (cron :00'da; minute<10 sadece :00 kosusunda true). 4 kanal da gun boyu
-    # kapali olsa bile en fazla 24x4=96 arama/gun -> her iki tavanin da altinda.
-    # Canli kanallar yine her 10 dk'da ucuz videos.list ile dogrulanir (1 birim).
-    # Kapali kanalin canliya donmesi en fazla ~1 saat gecikmeyle yakalanir.
-    arama_zamani = datetime.now(timezone.utc).minute < 10
+    now = datetime.now(timezone.utc)
+
+    # Adaylar: mevcut ID + RSS'ten son videolar (kanal sirasi korunur:
+    # mevcut one yazilir ki hala canliysa ozel-yayina kaymadan korunsun)
+    aday = {}
+    for ch, cid in KANAL_ID.items():
+        cur = (mevcut.get(ch) or {}).get("video_id")
+        aday[ch] = ([cur] if cur else []) + rss_video_ids(cid)
+
+    canli = canli_kumesi([v for lst in aday.values() for v in lst])
+    if canli is None:
+        print("videos.list basarisiz -> kosu atlaniyor (tablo korundu).")
+        return
+
     rows = []
     for ch, cid in KANAL_ID.items():
-        cur = mevcut.get(ch)
-        if cur and cur in canli_set:
-            vid = cur                        # hala canli -> koru (ucuz)
-        elif arama_zamani:
-            durum, yeni = kanal_canli_ara(cid)   # olmus/bos + arama zamani -> coz
-            vid = cur if durum == "hata" else yeni  # arama hatasi -> mevcudu KORU
+        cur   = (mevcut.get(ch) or {}).get("video_id")
+        gunc  = (mevcut.get(ch) or {}).get("guncelleme")
+        c_set = canli.get(cid, set())
+        secim = next((v for v in aday[ch] if v in c_set), None)
+
+        if secim:
+            vid = secim                       # canli (mevcut oncelikli, yoksa RSS)
+            if secim != cur:
+                print(f"{ch}: yeni canli yayin (RSS) -> {secim}")
+        elif cur:
+            # az once oldu (videos.list dogruladi) -> hemen yedek arama dene
+            durum, yeni = kanal_canli_ara(cid)
+            vid = yeni if durum == "ok" else None   # cur'un olu oldugu KESIN
+        elif arama_gerek(gunc, now):
+            durum, yeni = kanal_canli_ara(cid)
+            if durum == "hata":
+                print(f"{ch:10} -> arama hatasi, satir atlandi (throttle korundu)")
+                continue                       # guncelleme yazma -> sonra tekrar dener
+            vid = yeni
         else:
-            vid = None                       # videos.list ONU olu dogruladi -> yayin yok
+            continue                           # olu + arama zamani degil -> dokunma
+
         rows.append({"kanal": ch, "video_id": vid,
-                     "guncelleme": datetime.now(timezone.utc).isoformat()})
+                     "guncelleme": now.isoformat()})
         print(f"{ch:10} -> {vid if vid else 'YAYIN YOK (null)'}")
-    sb_upsert(rows)
-    print("kanal_canli guncellendi.")
+
+    if rows:
+        sb_upsert(rows)
+    print(f"kanal_canli guncellendi ({len(rows)} satir).")
 
 if __name__ == "__main__":
     main()
