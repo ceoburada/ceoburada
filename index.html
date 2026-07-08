@@ -246,7 +246,16 @@ function renderVideos(){
   if(videoGizli){ box.innerHTML = ""; return; }   // gizli mod: iframe yok = veri akışı yok
   const liste = secili==="all" ? KANALLAR : [secili];
   box.classList.toggle("single", secili!=="all");
-  box.innerHTML = liste.map(tileHTML).join("");
+  // Diff: gösterilecek kanallardan DOM'da olanı KORU (iframe yeniden yüklenmez),
+  // olmayanı kur, fazlalıkları sil. Duraklatma yok — tutabildiğini tut, olmayanı yükle.
+  const mevcut = {};
+  box.querySelectorAll(":scope > .vid").forEach(v => mevcut[v.dataset.k] = v);
+  Object.keys(mevcut).forEach(k => { if(!liste.includes(k)){ mevcut[k].remove(); delete mevcut[k]; } });
+  liste.forEach((k, i) => {
+    let el = mevcut[k];
+    if(!el){ const t = document.createElement("div"); t.innerHTML = tileHTML(k); el = t.firstElementChild; }
+    if(box.children[i] !== el) box.insertBefore(el, box.children[i] || null);
+  });
 }
 
 /* ---- Yayınları gizle/göster (mobil veri tasarrufu) ---- */
