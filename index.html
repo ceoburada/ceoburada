@@ -67,10 +67,13 @@
   .vid.ext:hover .thumb{filter:brightness(.5)}
   @media(max-width:760px){#videos{grid-template-columns:1fr}}
 
-  /* Geniş (yatay) ekran: dashboard düzeni — videolar sol sabit, demeçler sağ */
+  /* Geniş (yatay) ekran: dashboard düzeni — videolar sol sabit, demeçler sağ.
+     Tam genişlik kullanılır (kenarlarda ölü boşluk kalmasın), videolar büyür. */
   @media(min-width:1500px){
-    .bar,.tabs,main{max-width:1840px}
-    main{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:28px;align-items:start}
+    .bar,.tabs{max-width:none;padding-left:30px;padding-right:30px}
+    main{max-width:none;padding:18px 30px 40px;
+      display:grid;grid-template-columns:minmax(0,13fr) minmax(0,7fr);gap:30px;align-items:start}
+    #videos{gap:10px}
     .col-l{position:sticky;top:14px}
     .col-r .feedhead{margin-top:0}
     .col-r h2{margin-top:0}
