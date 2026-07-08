@@ -45,9 +45,16 @@
   /* Yayınları gizle/göster (mobil veri tasarrufu + salt okuma modu) */
   .vgiz{border-style:dashed;color:var(--tx3)}
   .vgiz:hover{color:var(--tx)}
-  /* Yayınlar gizliyken düğme parlak: basılı olduğu belli olsun, unutan fark etsin */
-  .vgiz.on{border-style:solid;background:var(--acc);border-color:var(--acc);color:#08131f}
-  .vgiz.on:hover{color:#08131f;filter:brightness(1.1)}
+  /* Yayınlar gizliyken: yazı belirgin + kesikli çerçevede dönen ışık
+     (yayınları buradan geri açabilirsin hatırlatması) */
+  @property --vga{syntax:"<angle>";initial-value:0deg;inherits:false}
+  .vgiz.on{color:var(--tx);position:relative}
+  .vgiz.on::after{content:"";position:absolute;inset:-2px;border-radius:999px;padding:2px;
+    background:conic-gradient(from var(--vga),transparent 0deg 295deg,var(--acc) 340deg,transparent 360deg);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;animation:vgspin 2.4s linear infinite}
+  @keyframes vgspin{to{--vga:360deg}}
   body.novideo .col-l{display:none}
   body.novideo .col-r{max-width:900px;width:100%}
 
