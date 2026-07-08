@@ -235,10 +235,7 @@ function tileHTML(k){
   }
   // Kontroller AÇIK (controls=1) ama üstteki .shield fareyi yakalar → YouTube
   // kontrolleri gizli kalır; tile'a gelince kalkan geçirgen olur → kontroller çıkar
-  // Grid (Tümü) = temiz canlı duvar, kontrol çubuğu yok (controls=0).
-  // Tek kanal seçilince kontroller açık (controls=1) → ses/tam ekran.
-  const ctrl = (secili === "all") ? 0 : 1;
-  const src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&controls=${ctrl}`;
+  const src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1`;
   return `<div class="vid k-${k}" data-k="${k}"><iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
 }
 function renderVideos(){
