@@ -84,6 +84,9 @@
   /* Video alanı */
   #videos{display:grid;gap:4px;grid-template-columns:1fr 1fr}
   #videos.single{grid-template-columns:1fr}
+  /* Tek kanal modu: 4 iframe DOM'da kalır (canlı), sadece seçilen görünür */
+  #videos.single .vid{display:none}
+  #videos.single .vid.sel{display:block}
   /* 2x2 ızgara tek ekran gibi: sadece DIŞ köşeler yuvarlak, iç köşeler keskin */
   #videos:not(.single) .vid{border-radius:0}
   #videos:not(.single) .vid:nth-child(1){border-top-left-radius:var(--radius)}
@@ -241,9 +244,16 @@ function tileHTML(k){
 function renderVideos(){
   const box = document.getElementById("videos");
   if(videoGizli){ box.innerHTML = ""; return; }   // gizli mod: iframe yok = veri akışı yok
-  const liste = secili==="all" ? KANALLAR : [secili];
-  box.classList.toggle("single", secili!=="all");
-  box.innerHTML = liste.map(tileHTML).join("");
+  box.innerHTML = KANALLAR.map(tileHTML).join("");   // HER ZAMAN 4 kanal (canlı kalsın)
+  uygulaGorunum();
+}
+function uygulaGorunum(){
+  // Sekme değişince iframe'leri YENİDEN KURMA — sadece görünürlüğü aç/kapat.
+  // Seçilen kanal zaten oynuyor → 0 ms geçiş, siyah ekran yok.
+  const box = document.getElementById("videos");
+  const tek = secili !== "all";
+  box.classList.toggle("single", tek);
+  box.querySelectorAll(".vid").forEach(v => v.classList.toggle("sel", tek && v.dataset.k === secili));
 }
 
 /* ---- Yayınları gizle/göster (mobil veri tasarrufu) ---- */
@@ -348,6 +358,7 @@ async function loadCanli(){
     const el = document.querySelector(`#videos [data-k="${k}"]`);
     if(el) el.outerHTML = tileHTML(k);
   });
+  uygulaGorunum();   // değişen kanal yeniden kurulduysa görünürlüğü tazele
 }
 
 /* ---- Sekmeler ---- */
@@ -358,7 +369,7 @@ document.getElementById("tabs").addEventListener("click", e=>{
   secili = t.dataset.k;
   const s = document.getElementById("search");   // sekmeye basınca aramayı temizle
   if(s.value){ s.value = ""; aramaKod = ""; }
-  renderVideos(); loadFeed();
+  uygulaGorunum(); loadFeed();   // iframe'ler yeniden kurulmaz → kesintisiz geçiş
 });
 
 /* ---- Şirket kodu arama ---- */
