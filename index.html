@@ -34,8 +34,14 @@
     box-shadow:0 0 0 0 rgba(255,77,79,.6);animation:pulse 1.8s infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,77,79,.55)}70%{box-shadow:0 0 0 9px rgba(255,77,79,0)}100%{box-shadow:0 0 0 0 rgba(255,77,79,0)}}
   .logo small{color:var(--tx3);font-weight:600;font-size:12px;letter-spacing:.5px}
-  .spacer{flex:1}
-  .status{font-size:12px;color:var(--tx3)}
+  /* Mobil header: marka + tagline dikey istif, sola dayalı (kaos biter) */
+  @media(max-width:600px){
+    .bar{padding:12px 16px}
+    .logo{flex-direction:column;align-items:flex-start;gap:2px}
+    .logo small{font-size:11px;letter-spacing:.3px}
+    .tabs{padding:10px 16px 0;gap:6px}
+    .tab{padding:5px 12px;font-size:13px}
+  }
 
   .tabs{max-width:1200px;margin:0 auto;padding:12px 20px 0;display:flex;gap:8px;flex-wrap:wrap}
   .tab{padding:5px 15px;border-radius:999px;border:1px solid var(--line);background:var(--bg2);
@@ -156,8 +162,6 @@
 <header>
   <div class="bar">
     <div class="logo"><span class="name"><span class="dot"></span>CEOBurada</span><small>BORSAYA KOTE ŞİRKETLERİN YÖNETİCİ DEMEÇLERİ</small></div>
-    <div class="spacer"></div>
-    <div class="status" id="status">yükleniyor…</div>
   </div>
   <div class="tabs" id="tabs">
     <div class="tab active" data-k="all">Tümü</div>
@@ -180,7 +184,7 @@
     <div id="feed"></div>
   </div>
 </main>
-<footer>Video yayınları ilgili kanalların resmî YouTube canlı yayınlarından gömülüdür; tüm telif hakları ilgili yayıncılara aittir. CEO Burada, ücretsiz bir yapay zeka destekli tarama ve derleme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.</footer>
+<footer>Video yayınları ilgili kanalların resmî YouTube canlı yayınlarından gömülüdür; tüm telif hakları ilgili yayıncılara aittir. CEOBurada, ücretsiz bir yapay zeka destekli tarama ve derleme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.</footer>
 
 <script>
 const SUPABASE_URL = "https://tnvslslbnwkyfxyfgwua.supabase.co";
@@ -197,7 +201,7 @@ const sb = (path) => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
   headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}` }
 }).then(r=>r.ok?r.json():[]);
 
-function setStatus(t){ document.getElementById("status").textContent = t; }
+function setStatus(t){ const e=document.getElementById("status"); if(e) e.textContent = t; }
 
 /* ---- Videolar ---- */
 function tileHTML(k){
