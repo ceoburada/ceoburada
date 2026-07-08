@@ -215,7 +215,9 @@ async function ac(el, open){
   else el.classList.remove("open");
 }
 async function loadFeed(){
-  let q = "roportaj?select=grup,kod,etiket,kanal,gun,ilk_saat,manset,cumle_sayisi&order=guncelleme.desc&limit=300";
+  // Tümü: son 10 röportaj · tek kanal: son 5 röportaj (sayfa taze ve kısa kalsın)
+  const lim = secili==="all" ? 10 : 5;
+  let q = `roportaj?select=grup,kod,etiket,kanal,gun,ilk_saat,manset,cumle_sayisi&order=guncelleme.desc&limit=${lim}`;
   if(secili!=="all") q += `&kanal=eq.${encodeURIComponent(secili)}`;
   const rows = await sb(q);
   const feed = document.getElementById("feed");
