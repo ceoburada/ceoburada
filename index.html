@@ -359,14 +359,14 @@ document.getElementById("feed").addEventListener("click", async e=>{
 });
 
 /* ---- Son Dergi Yayınları ---- */
-const DERGI_SEL = "grup,kod,etiket,dergi_ad,sayi,manset,tarih,guncelleme";
+const DERGI_SEL = "grup,kod,etiket,dergi_ad,sayi,sayfa,manset,tarih,guncelleme";
 let sonDergiImza = "";
 function dergiCardHTML(r){
   return `<div class="rp rp-dergi solo">
     <div class="rphead">
       <span class="who">${esc(r.etiket||r.kod||"")}</span>
       <span class="badge badge-dergi">${esc(r.dergi_ad||"Dergi")}</span>
-      <span class="time">${esc(r.sayi||"")}</span>
+      <span class="time">${esc(r.sayi||"")}${r.sayfa?" · "+esc(r.sayfa):""}</span>
     </div>
     <div class="manset">${esc(r.manset||"")}</div>
   </div>`;
