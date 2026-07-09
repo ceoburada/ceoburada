@@ -203,7 +203,7 @@
   <div class="area-videos"><div id="videos"></div></div>
   <div class="area-demec">
     <div class="feedhead">
-      <h2 id="feedTitle">Son Demeçler</h2>
+      <h2 id="feedTitle">Son TV Demeçleri</h2>
       <input id="search" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Şirket kodu (örn. THYAO)">
     </div>
@@ -337,7 +337,7 @@ async function loadFeed(){
     const lim = secili==="all" ? 10 : 5;
     q = `roportaj?select=${SEL}&order=guncelleme.desc&limit=${lim}`;
     if(secili!=="all") q += `&kanal=eq.${encodeURIComponent(secili)}`;
-    baslik = secili==="all" ? "Son Demeçler" : `${AD[secili]} — Son Demeçler`;
+    baslik = secili==="all" ? "Son TV Demeçleri" : `${AD[secili]} — TV Demeçleri`;
     bosMesaj = "Henüz onaylı demeç yok. Yeni açıklamalar geldikçe burada görünecek.";
   }
   const rows = await sb(q);
