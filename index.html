@@ -68,8 +68,7 @@
     -webkit-mask-composite:xor;mask-composite:exclude;
     pointer-events:none;animation:vgspin 5s linear infinite}
   @keyframes vgspin{to{--vga:360deg}}
-  body.novideo .col-l{display:none}
-  body.novideo .col-r{max-width:900px;width:100%}
+  body.novideo .area-videos{display:none}
   /* Şirket kodu arama kutusu (Son Demeçler başlığının yanında) */
   .search{margin-left:auto;border:1px solid var(--line);border-radius:999px;
     color:var(--tx);font-size:13px;padding:6px 14px 6px 32px;outline:none;width:240px;max-width:56vw;text-transform:uppercase;
@@ -78,7 +77,12 @@
   .search:focus{border-color:var(--acc)}
   .search::placeholder{color:var(--tx3);text-transform:none}
 
-  main{max-width:1200px;margin:0 auto;padding:18px 20px 60px}
+  main{max-width:1200px;margin:0 auto;padding:18px 20px 60px;
+    display:grid;grid-template-columns:1fr;
+    grid-template-areas:"videos" "demec" "dergi"}
+  .area-videos{grid-area:videos}
+  .area-demec{grid-area:demec}
+  .area-dergi{grid-area:dergi}
 
   /* Video alanı */
   #videos{display:grid;gap:4px;grid-template-columns:1fr 1fr}
@@ -121,12 +125,14 @@
      Tam genişlik kullanılır (kenarlarda ölü boşluk kalmasın), videolar büyür. */
   @media(min-width:1500px){
     .bar,.tabs{max-width:2100px;padding-left:30px;padding-right:30px}
-    main{max-width:2100px;padding:18px 30px 40px;
-      display:grid;grid-template-columns:minmax(0,11fr) minmax(0,9fr);gap:30px;align-items:start}
-    .col-l{position:sticky;top:14px}
-    .col-r .feedhead{margin-top:0}
-    .col-r h2{margin-top:0}
-    body.novideo main{grid-template-columns:1fr}
+    /* Dashboard: sol sütun = videolar (üst) + dergi (alt), sağ sütun = demeçler */
+    main{max-width:2100px;padding:18px 30px 40px;gap:0 30px;align-items:start;
+      grid-template-columns:minmax(0,11fr) minmax(0,9fr);
+      grid-template-areas:"videos demec" "dergi demec"}
+    .area-demec .feedhead{margin-top:0}
+    .area-demec h2{margin-top:0}
+    /* Yayınları gizle: demeçler sola, dergi sağa (yan yana) */
+    body.novideo main{grid-template-columns:1fr 1fr;grid-template-areas:"demec dergi"}
   }
 
   /* Demeç akışı */
@@ -146,6 +152,9 @@
   .rp .badge.k-Cnbce{color:var(--cnbce-s);border-color:#222f3c}
   .rp .badge.k-EkoTurk{color:var(--ekoturk-s);border-color:#382427}
   .rp .badge.k-Apara{color:var(--apara-s);border-color:#1f342e}
+  /* Dergi balonları: mor tonu, ayrı rozet */
+  .rp.rp-dergi{border-left-color:#a78bfa}
+  .rp .badge.badge-dergi{color:#c4b5fd;border-color:#3a2f5a}
   .rp .time{color:var(--tx3);font-size:12px}
   .rp .meta{margin-left:auto;display:flex;align-items:center;gap:6px}
   .rp .cnt{color:var(--tx3);font-size:12px}
@@ -191,14 +200,18 @@
 </header>
 
 <main>
-  <div class="col-l"><div id="videos"></div></div>
-  <div class="col-r">
+  <div class="area-videos"><div id="videos"></div></div>
+  <div class="area-demec">
     <div class="feedhead">
       <h2 id="feedTitle">Son Demeçler</h2>
       <input id="search" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Şirket kodu (örn. THYAO)">
     </div>
     <div id="feed"></div>
+  </div>
+  <div class="area-dergi">
+    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Yayınları</h2></div>
+    <div id="dergiFeed"></div>
   </div>
 </main>
 <footer>Video yayınları ilgili kanalların resmî YouTube canlı yayınlarından gömülüdür; tüm telif hakları ilgili yayıncılara aittir. CEOBurada, ücretsiz bir yapay zeka destekli tarama ve derleme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.</footer>
@@ -345,6 +358,36 @@ document.getElementById("feed").addEventListener("click", async e=>{
   await ac(el, !el.classList.contains("open"));
 });
 
+/* ---- Son Dergi Yayınları ---- */
+const DERGI_SEL = "grup,kod,etiket,dergi_ad,sayi,manset,tarih,guncelleme";
+let sonDergiImza = "";
+function dergiCardHTML(r){
+  return `<div class="rp rp-dergi solo">
+    <div class="rphead">
+      <span class="who">${esc(r.etiket||r.kod||"")}</span>
+      <span class="badge badge-dergi">${esc(r.dergi_ad||"Dergi")}</span>
+      <span class="time">${esc(r.sayi||"")}</span>
+    </div>
+    <div class="manset">${esc(r.manset||"")}</div>
+  </div>`;
+}
+async function loadDergi(){
+  // Arama varsa o koda ait dergi yayınları; yoksa son 10
+  let q = `dergi?select=${DERGI_SEL}&order=guncelleme.desc&limit=10`;
+  if(aramaKod) q = `dergi?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${DERGI_SEL}&order=guncelleme.desc&limit=10`;
+  const rows = await sb(q);
+  const box = document.getElementById("dergiFeed");
+  document.getElementById("dergiTitle").textContent = aramaKod ? `${aramaKod} · Dergi Yayınları` : "Son Dergi Yayınları";
+  const imza = JSON.stringify([aramaKod, rows]);
+  if(imza === sonDergiImza) return;
+  sonDergiImza = imza;
+  if(!rows.length){
+    box.innerHTML = `<div class="empty">${aramaKod ? `"${aramaKod}" için dergi yayını bulunamadı.` : "Henüz dergi yayını yok. Dergi taramaları geldikçe burada görünecek."}</div>`;
+    return;
+  }
+  box.innerHTML = rows.map(dergiCardHTML).join("");
+}
+
 /* ---- Canlı ID'ler ---- */
 let videolarCizildi = false;
 async function loadCanli(){
@@ -369,7 +412,7 @@ document.getElementById("tabs").addEventListener("click", e=>{
   t.classList.add("active");
   secili = t.dataset.k;
   const s = document.getElementById("search");   // sekmeye basınca aramayı temizle
-  if(s.value){ s.value = ""; aramaKod = ""; }
+  if(s.value){ s.value = ""; aramaKod = ""; loadDergi(); }   // arama temizlenince dergi de tazelensin
   renderVideos(); loadFeed();
 });
 
@@ -383,13 +426,13 @@ document.getElementById("tabs").addEventListener("click", e=>{
       const v = inp.value.trim().toUpperCase();
       if(v === aramaKod) return;
       aramaKod = v;
-      loadFeed();
+      loadFeed(); loadDergi();
     }, 250);   // yazarken debounce
   });
 })();
 
 async function tick(){
-  try{ await loadFeed(); setStatus("güncel · "+new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})); }
+  try{ await loadFeed(); await loadDergi(); setStatus("güncel · "+new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})); }
   catch(e){ setStatus("bağlantı hatası"); }
 }
 (async function init(){
@@ -397,6 +440,7 @@ async function tick(){
   await loadCanli();
   await tick();
   setInterval(loadFeed, 30000);      // demeç akışı 30 sn'de bir
+  setInterval(loadDergi, 60000);     // dergi akışı 60 sn'de bir (nadir değişir)
   setInterval(loadCanli, 300000);    // canlı ID'ler 5 dk'da bir
 })();
 </script>
