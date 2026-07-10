@@ -68,6 +68,10 @@
     pointer-events:none;animation:vgspin 5s linear infinite}
   @keyframes vgspin{to{--vga:360deg}}
   body.novideo .area-videos{display:none}
+  /* Videolar gizliyken dar/dikey düzende de videos satırını grid'den kaldır
+     (aksi halde boş 'videos' satırı ~112px fantom boşluk bırakıyor; ≥1500px'te
+     alttaki media query iki sütuna çevirir) */
+  body.novideo main{grid-template-areas:"demec" "dergi"}
   /* Hisse arama kutusu (TV + dergi başlıklarında ikiz senkron; TV+dergi+videoları filtreler) */
   .search{margin-left:auto;border:1px solid var(--line);border-radius:999px;
     color:var(--tx);font-size:13px;padding:6px 14px 6px 32px;outline:none;width:200px;max-width:56vw;text-transform:uppercase;
