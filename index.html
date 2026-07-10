@@ -136,6 +136,9 @@
     .area-demec h2{margin-top:0}
     /* Yayınları gizle: demeçler sola, dergi sağa (yan yana) */
     body.novideo main{grid-template-columns:1fr 1fr;grid-template-areas:"demec dergi"}
+    /* İki sütun tepede yan yana → dergi başlığı da TV başlığıyla aynı hizada başlasın
+       (normal dashboard'da dergi videoların altında olduğu için 26px üst boşluk korunur) */
+    body.novideo .area-dergi .feedhead{margin-top:0}
   }
 
   /* Demeç akışı */
