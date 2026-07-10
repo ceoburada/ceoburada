@@ -40,8 +40,9 @@
     .logo small{font-size:11px;letter-spacing:.3px}
     .tabs{padding:10px 16px 0;gap:6px}
     .tab{padding:5px 12px;font-size:13px}
-    /* Arama kutusu mobilde markanın altında tam genişlik (bar sarar) */
-    .bar .search{margin-left:0;width:100%;max-width:none}
+    /* Arama kutusu mobilde başlığın altında tam genişlik (feedhead sarar) */
+    .feedhead{flex-wrap:wrap}
+    .feedhead .search{margin-left:0;width:100%;max-width:none}
   }
 
   .tabs{max-width:1200px;margin:0 auto;padding:12px 20px 0;display:flex;gap:8px;flex-wrap:wrap}
@@ -191,8 +192,6 @@
 <header>
   <div class="bar">
     <div class="logo"><span class="name"><span class="dot"></span>CEOBurada</span><small>BORSAYA KOTE ŞİRKETLERİN YÖNETİCİ DEMEÇLERİ</small></div>
-    <input id="search" class="search" type="search" inputmode="text" autocomplete="off"
-           maxlength="12" placeholder="Şirket kodu ara (örn. THYAO)">
   </div>
   <div class="tabs" id="tabs">
     <div class="tab active" data-k="all">Tümü</div>
@@ -207,11 +206,15 @@
 <main>
   <div class="area-videos"><div id="videos"></div></div>
   <div class="area-demec">
-    <div class="feedhead"><h2 id="feedTitle">Son TV Demeçleri</h2></div>
+    <div class="feedhead"><h2 id="feedTitle">Son TV Demeçleri</h2>
+      <input id="search" class="search" type="search" inputmode="text" autocomplete="off"
+             maxlength="12" placeholder="Şirket kodu (örn. THYAO)"></div>
     <div id="feed"></div>
   </div>
   <div class="area-dergi">
-    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Yayınları</h2></div>
+    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Yayınları</h2>
+      <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
+             maxlength="12" placeholder="Şirket kodu (örn. THYAO)"></div>
     <div id="dergiFeed"></div>
   </div>
 </main>
@@ -412,23 +415,27 @@ document.getElementById("tabs").addEventListener("click", e=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
   t.classList.add("active");
   secili = t.dataset.k;
-  const s = document.getElementById("search");   // sekmeye basınca aramayı temizle
-  if(s.value){ s.value = ""; aramaKod = ""; loadDergi(); }   // arama temizlenince dergi de tazelensin
+  document.querySelectorAll(".search").forEach(x=> x.value = "");   // sekmede iki kutu da temizlenir
+  if(aramaKod){ aramaKod = ""; loadDergi(); }   // arama temizlenince dergi de tazelensin
   renderVideos(); loadFeed();
 });
 
-/* ---- Şirket kodu arama ---- */
+/* ---- Şirket kodu arama: TV + dergi başlıklarında İKİ senkron kutu ---- */
 (function(){
-  const inp = document.getElementById("search");
+  const kutular = [...document.querySelectorAll(".search")];
   let t;
-  inp.addEventListener("input", ()=>{
-    clearTimeout(t);
-    t = setTimeout(()=>{
-      const v = inp.value.trim().toUpperCase();
-      if(v === aramaKod) return;
-      aramaKod = v;
-      loadFeed(); loadDergi();
-    }, 250);   // yazarken debounce
+  kutular.forEach(inp=>{
+    inp.addEventListener("input", ()=>{
+      // birine yazılınca diğerine de aynısı yazılır (senkron)
+      kutular.forEach(k=>{ if(k!==inp) k.value = inp.value; });
+      clearTimeout(t);
+      t = setTimeout(()=>{
+        const v = inp.value.trim().toUpperCase();
+        if(v === aramaKod) return;
+        aramaKod = v;
+        loadFeed(); loadDergi();   // ikisi birden filtrelenir
+      }, 250);   // yazarken debounce
+    });
   });
 })();
 
