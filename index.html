@@ -138,8 +138,13 @@
   /* Demeç akışı */
   .feedhead{display:flex;align-items:baseline;gap:10px;margin:26px 2px 12px}
   .feedhead h2{margin:0;font-size:18px;letter-spacing:.2px}
+  /* Başlık başında yanıp sönen kırık-beyaz nokta (markadaki kırmızının beyaz versiyonu) */
+  .feedhead h2::before{content:"";display:inline-block;width:.55em;height:.55em;border-radius:50%;
+    background:#e7ecf3;vertical-align:.08em;margin-right:.45em;
+    box-shadow:0 0 0 0 rgba(231,236,243,.5);animation:pulseW 1.8s infinite}
+  @keyframes pulseW{0%{box-shadow:0 0 0 0 rgba(231,236,243,.5)}70%{box-shadow:0 0 0 8px rgba(231,236,243,0)}100%{box-shadow:0 0 0 0 rgba(231,236,243,0)}}
   .feedhead .cnt{color:var(--tx3);font-size:13px}
-  #feed{display:flex;flex-direction:column;gap:12px}
+  #feed,#dergiFeed{display:flex;flex-direction:column;gap:12px}
   @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .rp{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--acc);
     border-radius:12px;overflow:hidden;animation:rise .3s ease}
@@ -372,9 +377,9 @@ function dergiCardHTML(r){
   </div>`;
 }
 async function loadDergi(){
-  // Arama varsa o koda ait dergi yayınları; yoksa son 10
-  let q = `dergi?select=${DERGI_SEL}&order=guncelleme.desc&limit=10`;
-  if(aramaKod) q = `dergi?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${DERGI_SEL}&order=guncelleme.desc&limit=10`;
+  // Arama varsa o koda ait dergi yayınları; yoksa son 5
+  let q = `dergi?select=${DERGI_SEL}&order=guncelleme.desc&limit=5`;
+  if(aramaKod) q = `dergi?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${DERGI_SEL}&order=guncelleme.desc&limit=5`;
   const rows = await sb(q);
   const box = document.getElementById("dergiFeed");
   document.getElementById("dergiTitle").textContent = aramaKod ? `${aramaKod} · Dergi Yayınları` : "Son Dergi Yayınları";
