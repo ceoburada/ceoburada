@@ -146,7 +146,8 @@
   #feed,#dergiFeed{display:flex;flex-direction:column;gap:12px}
   @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .rp{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--acc);
-    border-radius:12px;overflow:hidden;animation:rise .3s ease}
+    border-radius:12px;overflow:hidden;animation:rise .3s ease;
+    user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   .rp.k-Bloomberg{border-left-color:var(--bloomberg-s)} .rp.k-Cnbce{border-left-color:var(--cnbce-s)}
   .rp.k-EkoTurk{border-left-color:var(--ekoturk-s)} .rp.k-Apara{border-left-color:var(--apara-s)}
   .rphead{display:flex;align-items:center;gap:9px;padding:12px 15px;user-select:none;flex-wrap:wrap}
