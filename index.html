@@ -356,11 +356,7 @@ async function loadCumleler(el){
   box.dataset.loaded="1";
 }
 async function ac(el, open){
-  if(open){
-    // Akordiyon: aynı anda yalnızca BİR balon açık kalsın → diğer açıkları kapat
-    document.querySelectorAll("#feed .rp.open").forEach(o=>{ if(o!==el) o.classList.remove("open"); });
-    await loadCumleler(el); el.classList.add("open");
-  }
+  if(open){ await loadCumleler(el); el.classList.add("open"); }
   else el.classList.remove("open");
 }
 let sonFeedImza = "";
