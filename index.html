@@ -61,9 +61,10 @@
     .logo small{font-size:11px;letter-spacing:.3px}
     .tabs{padding:10px 16px 0;gap:6px}
     .tab{padding:5px 12px;font-size:13px}
-    /* Arama kutusu mobilde başlığın altında tam genişlik (feedhead sarar) */
-    .feedhead{flex-wrap:wrap}
-    .feedhead .search{margin-left:0;width:100%;max-width:none}
+    /* Arama kutusu mobilde de başlıkla AYNI satırda: kalan alanı doldurur */
+    .feedhead{flex-wrap:nowrap}
+    .feedhead h2{flex:0 0 auto;white-space:nowrap}
+    .feedhead .search{margin-left:auto;width:auto;flex:1 1 auto;min-width:0;max-width:60vw}
   }
 
   .tabs{max-width:1200px;margin:0 auto;padding:12px 20px 0;display:flex;gap:8px;flex-wrap:wrap}
