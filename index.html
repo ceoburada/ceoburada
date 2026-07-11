@@ -265,6 +265,20 @@
   .hp-tekrar{margin-top:10px;width:100%;border:1px solid var(--line);background:var(--bg2);color:var(--tx2);
     border-radius:8px;padding:7px;font-size:12px;font-weight:600;cursor:pointer}
   .hp-ok{color:var(--ok);font-weight:700}
+  /* PWA "uygulama olarak ekle" alt çubuğu (her şeyin üstünde) */
+  .kurbar{position:fixed;left:12px;right:12px;bottom:12px;z-index:200;max-width:520px;margin:0 auto;
+    display:flex;align-items:center;gap:11px;
+    background:var(--card);border:1px solid #2a3444;border-radius:12px;padding:10px 12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  .kurbar[hidden]{display:none}
+  .kb-ico{width:30px;height:30px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .kb-dot{width:11px;height:11px;border-radius:50%;background:var(--live)}
+  .kb-txt{flex:1;min-width:0}
+  .kb-bas{color:var(--tx);font-size:13.5px;font-weight:600}
+  .kb-alt{color:var(--tx2);font-size:12px;line-height:1.4}
+  .kb-ekle{background:var(--acc);color:#04131f;border:0;border-radius:8px;font-size:13px;font-weight:600;padding:7px 14px;cursor:pointer;flex:0 0 auto}
+  .kb-sonra{background:transparent;color:var(--tx2);border:1px solid var(--line);border-radius:8px;font-size:13px;padding:7px 12px;cursor:pointer;flex:0 0 auto}
+  @media(max-width:600px){ .kurbar{gap:9px;padding:9px 10px} .kb-ekle,.kb-sonra{padding:7px 11px} }
 </style>
 </head>
 <body>
@@ -318,6 +332,16 @@
   </div>
 </main>
 <footer><div class="fcontact"><a class="xfoot" href="https://x.com/ceoburada" target="_blank" rel="noopener" aria-label="X'te takip et (@CEOBurada)"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a><a href="mailto:info@ceoburada.com">info@ceoburada.com</a></div><div class="flegal">Video yayınları ilgili kanalların resmî YouTube canlı yayınlarından gömülüdür; tüm telif hakları ilgili yayıncılara aittir. CEOBurada, ücretsiz bir yapay zeka destekli tarama ve derleme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.</div></footer>
+
+<div class="kurbar" id="kurBar" hidden>
+  <span class="kb-ico"><span class="kb-dot"></span></span>
+  <div class="kb-txt">
+    <div class="kb-bas">Uygulama gibi kullan</div>
+    <div class="kb-alt">Ana ekrana kısayol ekle, daha hızlı aç.</div>
+  </div>
+  <button class="kb-ekle" id="kurEkle">Ekle</button>
+  <button class="kb-sonra" id="kurSonra">Sonra</button>
+</div>
 
 <script>
 const SUPABASE_URL = "https://tnvslslbnwkyfxyfgwua.supabase.co";
@@ -717,6 +741,39 @@ async function tick(){
   }
 
   bellGuncelle();
+})();
+
+/* ---- PWA "uygulama olarak ekle" önerisi (Android/PC Chrome-Edge; iPhone'da HİÇ çıkmaz) ---- */
+(function(){
+  const bar = document.getElementById("kurBar");
+  if(!bar) return;
+  const kurulu = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  if(kurulu) return;   // zaten uygulama olarak açılmışsa gösterme
+
+  function beklemede(){   // "Sonra"/karar sonrası 14 gün erteleme
+    const t = +localStorage.getItem("kur_ertele") || 0;
+    return t && (Date.now() - t < 14*24*3600*1000);
+  }
+  let ertelenmis = null;
+  // beforeinstallprompt SADECE Android/PC Chrome-Edge'de tetiklenir → iPhone'da bu blok hiç çalışmaz
+  window.addEventListener("beforeinstallprompt", (e)=>{
+    e.preventDefault();                    // Chrome'un kendi önerisini bastır (tek öneri: bizimki)
+    ertelenmis = e;
+    if(!beklemede()) bar.hidden = false;
+  });
+  document.getElementById("kurEkle").addEventListener("click", async ()=>{
+    bar.hidden = true;
+    if(!ertelenmis) return;
+    ertelenmis.prompt();                   // native kurulum penceresi
+    try{ await ertelenmis.userChoice; }catch(_){}
+    ertelenmis = null;
+    localStorage.setItem("kur_ertele", Date.now());
+  });
+  document.getElementById("kurSonra").addEventListener("click", ()=>{
+    bar.hidden = true;
+    localStorage.setItem("kur_ertele", Date.now());   // reddedince kaybolur, ~14 gün sorma
+  });
+  window.addEventListener("appinstalled", ()=>{ bar.hidden = true; });
 })();
 </script>
 </body>
