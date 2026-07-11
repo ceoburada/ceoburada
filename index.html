@@ -528,7 +528,7 @@ document.getElementById("tabs").addEventListener("click", e=>{
   secili = t.dataset.k;
   document.querySelectorAll(".search").forEach(x=> x.value = "");   // sekmede iki kutu da temizlenir
   if(aramaKod){ aramaKod = ""; loadDergi(); }   // arama temizlenince dergi de tazelensin
-  renderVideos(); loadFeed();
+  renderVideos(); loadCanli(); loadFeed();   // loadCanli: geçilen kanalın ID'si bayatsa tazele (YouTube "hata" ihtimalini azaltır)
 });
 
 /* ---- Şirket kodu arama: TV + dergi başlıklarında İKİ senkron kutu ---- */
