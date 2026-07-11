@@ -610,7 +610,8 @@ async function tick(){
     if(bell.classList.contains("on") || bell.classList.contains("bekliyor")){   // açık/bekliyor → KAPAT (anında)
       bellDurum("kapali");
       try{ const s = await mevcutAbonelik(); if(s) await s.unsubscribe(); }catch(_){}
-      bellGuncelle();
+      // bellGuncelle() ÇAĞIRMA: unsubscribe sonrası getSubscription bir süre STALE dönüp
+      // çanı yanlışlıkla "açık"a (altın) geri çeviriyor + aboneliği Supabase'e geri yazıyordu.
     }else{                                     // kapalı → AÇ
       let perm = Notification.permission;
       if(perm !== "granted"){ try{ perm = await Notification.requestPermission(); }catch(_){}}
