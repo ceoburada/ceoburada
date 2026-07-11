@@ -90,7 +90,7 @@
   @keyframes vgspin{to{--vga:360deg}}
   /* Bildirim çanı (aç/kapat) */
   .bell{border-style:dashed;color:var(--tx3);font-size:11.5px;font-weight:600;padding:3px 10px}
-  .bell:hover{color:var(--tx)}
+  @media (hover:hover){ .bell:hover{color:var(--tx)} }   /* sticky-hover mobilde parlak bırakmasın */
   .bell.on{color:var(--acc);border-color:var(--acc);border-style:solid}
   body.novideo .area-videos{display:none}
   /* Videolar gizliyken dar/dikey düzende de videos satırını grid'den kaldır
