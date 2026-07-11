@@ -76,15 +76,17 @@ async function ac(){
         'apikey':SB_KEY,
         'Authorization':'Bearer '+SB_KEY,
         'Content-Type':'application/json',
-        'Prefer':'resolution=merge-duplicates'
+        'Prefer':'return=minimal'
       },
       body: JSON.stringify({ endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth })
     });
-    if(r.ok || r.status===201 || r.status===200){
+    if(r.ok || r.status===201){
       durum('✅ Abone oldun!\nArtık sana site kapalıyken bile test bildirimi gönderebiliriz.');
+    }else if(r.status===409){
+      durum('✅ Zaten kayıtlısın!\nBu cihaza push gönderebiliriz.');
     }else{
       const t = await r.text();
-      durum('⚠️ Abone olundu ama kayıt hatası ('+r.status+'):\n'+t+'\n\n(Supabase tablosu henüz kurulmamış olabilir.)');
+      durum('⚠️ Kayıt hatası ('+r.status+'):\n'+t);
     }
   }catch(e){ durum('❌ Hata: '+e.message); }
 }
