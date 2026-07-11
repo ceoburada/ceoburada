@@ -234,7 +234,7 @@
     cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex:0 0 auto}
   .infobtn:hover{color:var(--tx);border-color:var(--tx3)}
   .infobtn[hidden]{display:none}
-  .infopop{display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:30;
+  .infopop{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:30;
     width:250px;max-width:calc(100vw - 24px);
     background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;
     font-size:12.5px;line-height:1.55;color:var(--tx2);font-weight:400;text-align:left;
@@ -242,13 +242,15 @@
   .infopop b{color:var(--tx)}
   @media (hover:hover){ .infobtn:hover ~ .infopop{display:block} }  /* PC: hover ile aç/kapa */
   .bildwrap.acik .infopop{display:block}                            /* dokunmatik: tık-toggle */
-  .bar .bildwrap{margin-left:auto}         /* üst barda sağa yasla — popup sola açılır (right:0) */
+  .tabs .bildwrap{margin-right:10px}       /* sekmeler satırının başında, kanal balonlarından ayrı */
 </style>
 </head>
 <body>
 <header>
   <div class="bar">
     <div class="logo"><span class="name"><span class="dot"></span>CEOBurada</span><small>BORSAYA KOTE ŞİRKETLERİN YÖNETİCİ DEMEÇLERİ</small></div>
+  </div>
+  <div class="tabs" id="tabs">
     <span class="bildwrap">
       <div class="tab bell" id="bildToggle" hidden>🔔 Bildirim al</div>
       <button class="infobtn" id="bildInfo" aria-label="Bildirim hakkında" hidden>i</button>
@@ -257,8 +259,6 @@
         <br><br>📱 <b>iPhone:</b> Paylaş → "Ana Ekrana Ekle" → o simgeden aç → sonra "🔔 Bildirim al"a bas.
       </div>
     </span>
-  </div>
-  <div class="tabs" id="tabs">
     <div class="tab active" data-k="all">Tümü</div>
     <div class="tab" data-k="Bloomberg">Bloomberg</div>
     <div class="tab" data-k="Cnbce">Cnbce</div>
