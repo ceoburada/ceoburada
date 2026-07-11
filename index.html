@@ -208,7 +208,10 @@
   footer{max-width:760px;margin:0 auto;padding:26px 20px 40px;color:#49525f;font-size:12px;line-height:1.6;text-align:center}
   footer a{color:var(--tx3);text-decoration:none}
   footer a:hover{color:var(--tx2)}
-  .xfoot{display:inline-flex;align-items:center;margin-right:12px;color:var(--tx3);vertical-align:middle}
+  .fcontact{display:flex;align-items:center;justify-content:center;gap:12px;color:var(--tx3);font-size:13px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:16px}
+  .fcontact a{color:var(--tx3)}
+  .flegal{font-size:12px;color:#49525f}
+  .xfoot{display:inline-flex;align-items:center;color:var(--tx3);vertical-align:middle}
   footer a:hover{color:var(--acc)}
   /* Mobil: '+N daha ▾' başlık satırında değil, baloncuğun sağ ALTINDA dursun */
   @media(max-width:600px){
@@ -252,7 +255,7 @@
     <div id="dergiFeed"></div>
   </div>
 </main>
-<footer>Video yayınları ilgili kanalların resmî YouTube canlı yayınlarından gömülüdür; tüm telif hakları ilgili yayıncılara aittir. CEOBurada, ücretsiz bir yapay zeka destekli tarama ve derleme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.<br><br><a class="xfoot" href="https://x.com/ceoburada" target="_blank" rel="noopener" aria-label="X'te takip et (@CEOBurada)"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a><a href="mailto:info@ceoburada.com">info@ceoburada.com</a></footer>
+<footer><div class="fcontact"><a class="xfoot" href="https://x.com/ceoburada" target="_blank" rel="noopener" aria-label="X'te takip et (@CEOBurada)"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a><a href="mailto:info@ceoburada.com">info@ceoburada.com</a></div><div class="flegal">Video yayınları ilgili kanalların resmî YouTube canlı yayınlarından gömülüdür; tüm telif hakları ilgili yayıncılara aittir. CEOBurada, ücretsiz bir yapay zeka destekli tarama ve derleme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.</div></footer>
 
 <script>
 const SUPABASE_URL = "https://tnvslslbnwkyfxyfgwua.supabase.co";
