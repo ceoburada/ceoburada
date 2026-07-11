@@ -86,6 +86,10 @@
     -webkit-mask-composite:xor;mask-composite:exclude;
     pointer-events:none;animation:vgspin 5s linear infinite}
   @keyframes vgspin{to{--vga:360deg}}
+  /* Bildirim çanı (aç/kapat) */
+  .bell{border-style:dashed;color:var(--tx3)}
+  .bell:hover{color:var(--tx)}
+  .bell.on{color:var(--acc);border-color:var(--acc);border-style:solid}
   body.novideo .area-videos{display:none}
   /* Videolar gizliyken dar/dikey düzende de videos satırını grid'den kaldır
      (aksi halde boş 'videos' satırı ~112px fantom boşluk bırakıyor; ≥1500px'te
@@ -252,6 +256,7 @@
     <div class="tab" data-k="EkoTurk">EkoTürk</div>
     <div class="tab" data-k="Apara">Apara</div>
     <div class="tab vgiz" id="vidToggle">Yayınları Gizle</div>
+    <div class="tab bell" id="bildToggle" hidden>🔔 Bildirim al</div>
   </div>
 </header>
 
@@ -523,7 +528,7 @@ async function tick(){
   const bar = document.getElementById("pushbar");
   const btn = document.getElementById("pushAc");
   const kapat = document.getElementById("pushKapat");
-  if(!bar) return;
+  const bell = document.getElementById("bildToggle");
 
   const supported = ("serviceWorker" in navigator) && ("PushManager" in window) && ("Notification" in window);
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -536,6 +541,26 @@ async function tick(){
     return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
   }
 
+  async function mevcutAbonelik(){
+    try{
+      const reg = await navigator.serviceWorker.getRegistration();
+      if(!reg) return null;
+      return await reg.pushManager.getSubscription();
+    }catch(_){ return null; }
+  }
+
+  async function sunucuyaKaydet(sub){
+    const j = sub.toJSON();
+    try{
+      await fetch(SUPABASE_URL + "/rest/v1/push_aboneleri", {
+        method:"POST",
+        headers:{ apikey:SUPABASE_KEY, Authorization:"Bearer "+SUPABASE_KEY,
+                  "Content-Type":"application/json", Prefer:"return=minimal" },
+        body: JSON.stringify({ endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth })
+      });
+    }catch(_){}
+  }
+
   async function aboneOl(){
     const reg = await navigator.serviceWorker.register("/sw.js");
     await navigator.serviceWorker.ready;
@@ -543,31 +568,38 @@ async function tick(){
     if(!sub){
       sub = await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:b64ToU8(VAPID) });
     }
-    const j = sub.toJSON();
-    await fetch(SUPABASE_URL + "/rest/v1/push_aboneleri", {
-      method:"POST",
-      headers:{ apikey:SUPABASE_KEY, Authorization:"Bearer "+SUPABASE_KEY,
-                "Content-Type":"application/json", Prefer:"return=minimal" },
-      body: JSON.stringify({ endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth })
-    });
+    await sunucuyaKaydet(sub);
   }
 
-  function goster(){
+  async function bellGuncelle(){
+    if(!bell) return;
+    if(!supported){ bell.hidden = true; return; }
+    const sub = await mevcutAbonelik();
+    bell.hidden = false;
+    bell.classList.toggle("on", !!sub);
+    bell.textContent = sub ? "🔔 Bildirim açık" : "🔔 Bildirim al";
+    bell.title = sub ? "Bildirimleri kapat" : "Bildirimleri aç";
+    if(sub) sunucuyaKaydet(sub);   // self-heal: Supabase'de kalsın
+  }
+
+  async function banneriDegerlendir(){
+    if(!bar) return;
     if(!supported){
       if(isIOS && !iosStandalone){   // iPhone Safari: PWA kurulumu gerekiyor
         bar.hidden = false;
         bar.querySelector(".pb-txt").innerHTML =
           "🔔 iPhone'da bildirim için: <b>Paylaş → Ana Ekrana Ekle</b>, sonra o simgeden aç.";
-        btn.style.display = "none";
+        if(btn) btn.style.display = "none";
       }
       return;
     }
-    if(localStorage.getItem("push_kapat") === "1") return;
-    if(Notification.permission === "granted"){ aboneOl().catch(()=>{}); return; }  // sessiz tazele
+    if(await mevcutAbonelik()) return;                        // zaten abone → davet yok
+    if(localStorage.getItem("push_kapat") === "1") return;    // kapatmış/reddetmiş
     if(Notification.permission === "denied") return;
-    bar.hidden = false;
+    bar.hidden = false;                                       // yeni ziyaretçi → davet
   }
 
+  // Banner "Bildirimleri Aç"
   btn && btn.addEventListener("click", async ()=>{
     btn.disabled = true; btn.textContent = "Açılıyor…";
     let perm = "denied";
@@ -575,17 +607,40 @@ async function tick(){
     if(perm !== "granted"){ btn.disabled=false; btn.textContent="Bildirimleri Aç"; if(perm==="denied") bar.hidden=true; return; }
     let ok = true;
     try{ await aboneOl(); }catch(_){ ok = false; }
+    localStorage.removeItem("push_kapat");
     bar.classList.add("done");
     bar.querySelector(".pb-txt").innerHTML = ok
       ? "✓ Bildirimler açık — yöneticiler canlıya çıktığında haber vereceğiz."
       : "✓ İzin verildi.";
     bar.querySelector(".pb-act").style.display = "none";
+    bellGuncelle();
     setTimeout(()=>{ bar.hidden = true; }, 4000);
   });
 
+  // Banner ✕ (daveti bir daha gösterme)
   kapat && kapat.addEventListener("click", ()=>{ bar.hidden = true; localStorage.setItem("push_kapat","1"); });
 
-  goster();
+  // Header çanı: aç ↔ kapat
+  bell && bell.addEventListener("click", async ()=>{
+    const sub = await mevcutAbonelik();
+    if(sub){                                     // AÇIK → kapat
+      try{ await sub.unsubscribe(); }catch(_){}
+      localStorage.setItem("push_kapat","1");
+      if(bar) bar.hidden = true;
+      await bellGuncelle();
+    }else{                                       // KAPALI → aç
+      localStorage.removeItem("push_kapat");
+      let perm = Notification.permission;
+      if(perm !== "granted"){ try{ perm = await Notification.requestPermission(); }catch(_){}}
+      if(perm !== "granted"){ await bellGuncelle(); return; }
+      try{ await aboneOl(); }catch(_){}
+      if(bar) bar.hidden = true;
+      await bellGuncelle();
+    }
+  });
+
+  bellGuncelle();
+  banneriDegerlendir();
 })();
 </script>
 </body>
