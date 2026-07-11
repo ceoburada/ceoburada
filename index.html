@@ -44,7 +44,8 @@
   header{background:rgba(11,14,20,.9);backdrop-filter:blur(10px);position:relative;z-index:100}
   .bar{max-width:1200px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .logo{display:flex;flex-direction:column;align-items:flex-start;gap:4px;font-weight:800;font-size:20px;letter-spacing:.3px}
-  .brandline{display:flex;align-items:center;gap:12px}
+  .brandline{display:flex;align-items:center;gap:12px;width:100%}
+  .brandline .bildwrap{margin-left:auto}   /* balon sağı açıklamanın sağına yaslansın */
   /* Nokta + marka .name içinde TEK grup (tagline sarsa bile ayrılmaz).
      Nokta inline-block + vertical-align ile büyük harflerin optik merkezine
      oturur (0.10em = cap yüksekliğinin yarısı - nokta yarıçapı). em → her boyda doğru. */
@@ -232,7 +233,8 @@
   .bildwrap{position:relative;display:inline-flex;align-items:center;gap:6px}
   .infobtn{width:19px;height:19px;border-radius:50%;border:1px solid var(--line);background:var(--bg2);
     color:var(--tx3);font-size:11px;font-style:italic;font-weight:700;font-family:Georgia,serif;
-    cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex:0 0 auto}
+    cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex:0 0 auto;
+    position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%)}   /* akış dışı: bell sağı hizayı belirlesin */
   .infobtn:hover{color:var(--tx);border-color:var(--tx3)}
   .infobtn[hidden]{display:none}
   .infopop{display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:30;
@@ -576,20 +578,19 @@ async function tick(){
     await sunucuyaKaydet(sub);
   }
 
-  async function bellGuncelle(){
+  function bellDurum(on){   // ANLIK görsel (ağ beklemeden)
+    bell.classList.toggle("on", on);
+    bell.textContent = on ? "🔔 Bildirim açık" : "🔔 Bildirim al";
+    bell.title = on ? "Bildirimleri kapat" : "Bildirimleri aç";
+  }
+
+  async function bellGuncelle(){   // gerçek durumla senkronize
     const gorunur = supported || (isIOS && !iosStandalone);   // iPhone Safari'de de göster (info için)
     if(!gorunur){ bell.hidden = true; if(info) info.hidden = true; return; }
     bell.hidden = false; if(info) info.hidden = false;
-    if(!supported){   // iPhone Safari (PWA değil): abone olunamaz, tık → info
-      bell.classList.remove("on");
-      bell.textContent = "🔔 Bildirim al";
-      bell.title = "Nasıl açılır?";
-      return;
-    }
+    if(!supported){ bellDurum(false); bell.title = "Nasıl açılır?"; return; }  // iPhone Safari: tık → info
     const sub = await mevcutAbonelik();
-    bell.classList.toggle("on", !!sub);
-    bell.textContent = sub ? "🔔 Bildirim açık" : "🔔 Bildirim al";
-    bell.title = sub ? "Bildirimleri kapat" : "Bildirimleri aç";
+    bellDurum(!!sub);
     if(sub) sunucuyaKaydet(sub);   // self-heal: Supabase'de kalsın
   }
 
@@ -598,14 +599,16 @@ async function tick(){
     if(!supported){ if(wrap) wrap.classList.add("acik"); return; }
     const sub = await mevcutAbonelik();
     if(sub){
+      bellDurum(false);                    // ANINDA kapalı göster
       try{ await sub.unsubscribe(); }catch(_){}
-      await bellGuncelle();
+      bellGuncelle();                      // arka planda gerçekle senkron
     }else{
       let perm = Notification.permission;
       if(perm !== "granted"){ try{ perm = await Notification.requestPermission(); }catch(_){}}
-      if(perm !== "granted"){ await bellGuncelle(); return; }
+      if(perm !== "granted"){ bellGuncelle(); return; }
+      bellDurum(true);                     // izin verildi → ANINDA açık göster (abonelik arka planda)
       try{ await aboneOl(); }catch(_){}
-      await bellGuncelle();
+      bellGuncelle();                      // arka planda gerçekle senkron (başarısızsa geri al)
     }
   });
 
