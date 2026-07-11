@@ -660,7 +660,7 @@ async function tick(){
       const reg = await navigator.serviceWorker.ready;
       await reg.showNotification("CEOBurada — Test ✓", {
         body:"Bu bir test bildirimidir. Bunu gördüysen bildirimlerin çalışıyor.",
-        icon:"/icon-192.png", badge:"/icon-192.png", tag:"ceoburada-test"
+        icon:"/icon-192.png", badge:"/badge.png", tag:"ceoburada-test"
       });
     }catch(_){}
   }

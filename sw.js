@@ -12,7 +12,7 @@ self.addEventListener('push', (e) => {
   const opts = {
     body: d.govde || '',
     icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    badge: '/badge.png',   // status bar: beyaz siluet (icon-192 opak olduğu için beyaz kare çıkıyordu)
     tag: d.tag || undefined,
     data: { url: d.url || 'https://ceoburada.com/' },
   };
