@@ -223,6 +223,21 @@
     .rp:not(.solo) .manset{padding-bottom:34px}
     .rp.open .cumleler{padding-bottom:34px}
   }
+  /* Web push — canlı çıkış bildirimi daveti */
+  .pushbar{max-width:1200px;margin:12px auto 0;padding:11px 16px;display:flex;align-items:center;
+    justify-content:space-between;gap:12px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+  .pb-txt{font-size:13.5px;color:var(--tx2);line-height:1.5}
+  .pb-txt b{color:var(--tx)}
+  .pb-act{display:flex;align-items:center;gap:8px}
+  .pb-btn{border:0;background:var(--acc);color:#04131f;font-weight:700;font-size:13.5px;
+    padding:8px 16px;border-radius:9px;cursor:pointer;white-space:nowrap}
+  .pb-btn:hover{filter:brightness(1.08)}
+  .pb-btn:disabled{opacity:.6;cursor:default}
+  .pb-x{border:0;background:transparent;color:var(--tx3);font-size:15px;cursor:pointer;padding:4px 6px;line-height:1}
+  .pb-x:hover{color:var(--tx)}
+  .pushbar.done .pb-txt{color:var(--ok)}
+  @media(max-width:600px){ .pushbar{margin:10px 12px 0} }
 </style>
 </head>
 <body>
@@ -239,6 +254,14 @@
     <div class="tab vgiz" id="vidToggle">Yayınları Gizle</div>
   </div>
 </header>
+
+<div class="pushbar" id="pushbar" hidden>
+  <span class="pb-txt">🔔 Yöneticiler <b>canlı yayına çıktığı an</b> haber verelim — uygulama gerekmez.</span>
+  <span class="pb-act">
+    <button id="pushAc" class="pb-btn">Bildirimleri Aç</button>
+    <button id="pushKapat" class="pb-x" aria-label="Kapat" title="Kapat">✕</button>
+  </span>
+</div>
 
 <main>
   <div class="area-videos"><div id="videos"></div></div>
@@ -487,6 +510,77 @@ async function tick(){
   setInterval(loadFeed, 30000);      // demeç akışı 30 sn'de bir
   setInterval(loadDergi, 60000);     // dergi akışı 60 sn'de bir (nadir değişir)
   setInterval(loadCanli, 300000);    // canlı ID'ler 5 dk'da bir
+})();
+
+/* ---- Web push: canlı-çıkış bildirimi (favori yok, tüm abonelere yayın) ---- */
+(function(){
+  const VAPID = "BE44l_yPloApGEU1XEI5YsTAvGNpyRaaa6Eq5beyIqOWfnRaYkFWaJa9bTe0BX8vqekisNvXrG-WMSjlEI6nx1M";
+  const bar = document.getElementById("pushbar");
+  const btn = document.getElementById("pushAc");
+  const kapat = document.getElementById("pushKapat");
+  if(!bar) return;
+
+  const supported = ("serviceWorker" in navigator) && ("PushManager" in window) && ("Notification" in window);
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const iosStandalone = window.navigator.standalone === true;
+
+  function b64ToU8(base64){
+    const pad = "=".repeat((4 - base64.length % 4) % 4);
+    const b64 = (base64 + pad).replace(/-/g,"+").replace(/_/g,"/");
+    const raw = atob(b64);
+    return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+  }
+
+  async function aboneOl(){
+    const reg = await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:b64ToU8(VAPID) });
+    }
+    const j = sub.toJSON();
+    await fetch(SUPABASE_URL + "/rest/v1/push_aboneleri", {
+      method:"POST",
+      headers:{ apikey:SUPABASE_KEY, Authorization:"Bearer "+SUPABASE_KEY,
+                "Content-Type":"application/json", Prefer:"return=minimal" },
+      body: JSON.stringify({ endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth })
+    });
+  }
+
+  function goster(){
+    if(!supported){
+      if(isIOS && !iosStandalone){   // iPhone Safari: PWA kurulumu gerekiyor
+        bar.hidden = false;
+        bar.querySelector(".pb-txt").innerHTML =
+          "🔔 iPhone'da bildirim için: <b>Paylaş → Ana Ekrana Ekle</b>, sonra o simgeden aç.";
+        btn.style.display = "none";
+      }
+      return;
+    }
+    if(localStorage.getItem("push_kapat") === "1") return;
+    if(Notification.permission === "granted"){ aboneOl().catch(()=>{}); return; }  // sessiz tazele
+    if(Notification.permission === "denied") return;
+    bar.hidden = false;
+  }
+
+  btn && btn.addEventListener("click", async ()=>{
+    btn.disabled = true; btn.textContent = "Açılıyor…";
+    let perm = "denied";
+    try{ perm = await Notification.requestPermission(); }catch(_){}
+    if(perm !== "granted"){ btn.disabled=false; btn.textContent="Bildirimleri Aç"; if(perm==="denied") bar.hidden=true; return; }
+    let ok = true;
+    try{ await aboneOl(); }catch(_){ ok = false; }
+    bar.classList.add("done");
+    bar.querySelector(".pb-txt").innerHTML = ok
+      ? "✓ Bildirimler açık — yöneticiler canlıya çıktığında haber vereceğiz."
+      : "✓ İzin verildi.";
+    bar.querySelector(".pb-act").style.display = "none";
+    setTimeout(()=>{ bar.hidden = true; }, 4000);
+  });
+
+  kapat && kapat.addEventListener("click", ()=>{ bar.hidden = true; localStorage.setItem("push_kapat","1"); });
+
+  goster();
 })();
 </script>
 </body>
