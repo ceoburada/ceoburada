@@ -240,22 +240,14 @@
     font-size:12.5px;line-height:1.55;color:var(--tx2);font-weight:400;text-align:left;
     box-shadow:0 8px 24px rgba(0,0,0,.45)}
   .infopop b{color:var(--tx)}
-  .infobtn:hover ~ .infopop, .bildwrap.acik .infopop{display:block}
-  @media(max-width:600px){ .infopop{right:auto;left:0} }
+  .bildwrap.acik .infopop{display:block}   /* saf tık-toggle (hover yok, tutarlı) */
+  .bar .bildwrap{margin-left:auto}         /* üst barda sağa yasla — popup sola açılır (right:0) */
 </style>
 </head>
 <body>
 <header>
   <div class="bar">
     <div class="logo"><span class="name"><span class="dot"></span>CEOBurada</span><small>BORSAYA KOTE ŞİRKETLERİN YÖNETİCİ DEMEÇLERİ</small></div>
-  </div>
-  <div class="tabs" id="tabs">
-    <div class="tab active" data-k="all">Tümü</div>
-    <div class="tab" data-k="Bloomberg">Bloomberg</div>
-    <div class="tab" data-k="Cnbce">Cnbce</div>
-    <div class="tab" data-k="EkoTurk">EkoTürk</div>
-    <div class="tab" data-k="Apara">Apara</div>
-    <div class="tab vgiz" id="vidToggle">Yayınları Gizle</div>
     <span class="bildwrap">
       <div class="tab bell" id="bildToggle" hidden>🔔 Bildirim al</div>
       <button class="infobtn" id="bildInfo" aria-label="Bildirim hakkında" hidden>i</button>
@@ -264,6 +256,14 @@
         <br><br>📱 <b>iPhone:</b> Paylaş → "Ana Ekrana Ekle" → o simgeden aç → sonra "🔔 Bildirim al"a bas.
       </div>
     </span>
+  </div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-k="all">Tümü</div>
+    <div class="tab" data-k="Bloomberg">Bloomberg</div>
+    <div class="tab" data-k="Cnbce">Cnbce</div>
+    <div class="tab" data-k="EkoTurk">EkoTürk</div>
+    <div class="tab" data-k="Apara">Apara</div>
+    <div class="tab vgiz" id="vidToggle">Yayınları Gizle</div>
   </div>
 </header>
 
