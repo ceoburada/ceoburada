@@ -291,7 +291,7 @@
     <div id="feed"></div>
   </div>
   <div class="area-dergi">
-    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Yayınları</h2>
+    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2>
       <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Hisse ara (örn. THYAO)"></div>
     <div id="dergiFeed"></div>
@@ -446,7 +446,7 @@ document.getElementById("feed").addEventListener("click", async e=>{
   await ac(el, !el.classList.contains("open"));
 });
 
-/* ---- Son Dergi Yayınları ---- */
+/* ---- Son Dergi Demeçleri ---- */
 const DERGI_SEL = "grup,kod,etiket,dergi_ad,sayi,sayfa,manset,tarih,guncelleme";
 let sonDergiImza = "";
 function dergiCardHTML(r){
@@ -465,7 +465,7 @@ async function loadDergi(){
   if(aramaKod) q = `dergi?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${DERGI_SEL}&order=guncelleme.desc&limit=5`;
   const rows = await sb(q);
   const box = document.getElementById("dergiFeed");
-  document.getElementById("dergiTitle").textContent = aramaKod ? `${aramaKod} · Dergi Yayınları` : "Son Dergi Yayınları";
+  document.getElementById("dergiTitle").textContent = aramaKod ? `${aramaKod} · Dergi Demeçleri` : "Son Dergi Demeçleri";
   const imza = JSON.stringify([aramaKod, rows]);
   if(imza === sonDergiImza) return;
   sonDergiImza = imza;
