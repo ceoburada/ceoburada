@@ -485,7 +485,7 @@ async function loadFeed(){
     // Şirket kodu araması: o koda ait son 10 röportaj (kanal filtresini ezer)
     q = `roportaj?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${SEL}&order=guncelleme.desc&limit=10`;
     baslik = `${aramaKod} · Demeçler`;
-    bosMesaj = `"${aramaKod}" için demeç bulunamadı.`;
+    bosMesaj = `"${esc(aramaKod)}" için demeç bulunamadı.`;
   } else {
     // Tümü: son 10 röportaj · tek kanal: son 5 (sayfa taze ve kısa kalsın)
     const lim = secili==="all" ? 10 : 5;
@@ -536,7 +536,7 @@ async function loadDergi(){
   if(imza === sonDergiImza) return;
   sonDergiImza = imza;
   if(!rows.length){
-    box.innerHTML = `<div class="empty">${aramaKod ? `"${aramaKod}" için dergi yayını bulunamadı.` : "Henüz dergi yayını yok. Dergi taramaları geldikçe burada görünecek."}</div>`;
+    box.innerHTML = `<div class="empty">${aramaKod ? `"${esc(aramaKod)}" için dergi yayını bulunamadı.` : "Henüz dergi yayını yok. Dergi taramaları geldikçe burada görünecek."}</div>`;
     return;
   }
   box.innerHTML = rows.map(dergiCardHTML).join("");
