@@ -240,7 +240,8 @@
     font-size:12.5px;line-height:1.55;color:var(--tx2);font-weight:400;text-align:left;
     box-shadow:0 8px 24px rgba(0,0,0,.45)}
   .infopop b{color:var(--tx)}
-  .bildwrap.acik .infopop{display:block}   /* saf tık-toggle (hover yok, tutarlı) */
+  @media (hover:hover){ .infobtn:hover ~ .infopop{display:block} }  /* PC: hover ile aç/kapa */
+  .bildwrap.acik .infopop{display:block}                            /* dokunmatik: tık-toggle */
   .bar .bildwrap{margin-left:auto}         /* üst barda sağa yasla — popup sola açılır (right:0) */
 </style>
 </head>
@@ -603,9 +604,11 @@ async function tick(){
     }
   });
 
-  // Info: PC'de hover (CSS), mobilde tık (JS toggle); dışarı tıkla → kapat
-  info && info.addEventListener("click", (e)=>{ e.stopPropagation(); if(wrap) wrap.classList.toggle("acik"); });
-  document.addEventListener("click", ()=>{ if(wrap) wrap.classList.remove("acik"); });
+  // Info: PC'de hover (CSS). Dokunmatikte tık-toggle + dışarı dokun → kapat.
+  if(info && wrap && window.matchMedia("(hover: none)").matches){
+    info.addEventListener("click", (e)=>{ e.stopPropagation(); wrap.classList.toggle("acik"); });
+    document.addEventListener("click", ()=>{ wrap.classList.remove("acik"); });
+  }
 
   bellGuncelle();
 })();
