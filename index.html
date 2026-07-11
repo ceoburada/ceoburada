@@ -354,7 +354,16 @@ function tileHTML(k){
   // Kontroller AÇIK (controls=1) ama üstteki .shield fareyi yakalar → YouTube
   // kontrolleri gizli kalır; tile'a gelince kalkan geçirgen olur → kontroller çıkar
   const src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1`;
-  return `<div class="vid k-${k}" data-k="${k}"><iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
+  return `<div class="vid k-${k}" data-k="${k}"><iframe data-src="${src}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
+}
+// Canlı embed'leri AYNI ANDA değil 0.2 sn arayla yükle — 4 canlıyı birden başlatmak
+// YouTube oturum kurmayı zorlayıp birini "Bir hata oluştu"ya düşürebiliyor.
+function iframeleriYukle(){
+  document.querySelectorAll('#videos iframe[data-src]:not([src])').forEach((f, i)=>{
+    const s = f.dataset.src;
+    f.removeAttribute("data-src");   // tekrar seçilmesin
+    setTimeout(()=>{ if(!f.src) f.src = s; }, i*200);
+  });
 }
 function renderVideos(){
   const box = document.getElementById("videos");
@@ -371,6 +380,7 @@ function renderVideos(){
     if(!el){ const t = document.createElement("div"); t.innerHTML = tileHTML(k); el = t.firstElementChild; }
     if(box.children[i] !== el) box.insertBefore(el, box.children[i] || null);
   });
+  iframeleriYukle();   // yeni eklenen kareleri kademeli yükle
 }
 
 /* ---- Yayınları gizle/göster (mobil veri tasarrufu) ---- */
@@ -518,6 +528,7 @@ async function loadCanli(){
     const el = document.querySelector(`#videos [data-k="${k}"]`);
     if(el) el.outerHTML = tileHTML(k);
   });
+  iframeleriYukle();   // tazelenen kareleri kademeli yükle
 }
 
 /* ---- Sekmeler ---- */
