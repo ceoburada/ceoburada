@@ -252,6 +252,18 @@
   .infopop .binfo{width:11px;height:11px;color:var(--tx3);vertical-align:-1px}   /* metindeki çan da renksiz */
   @media (hover:hover){ .infobtn:hover ~ .infopop{display:block} }  /* PC: hover ile aç/kapa */
   .bildwrap.acik .infopop{display:block}                            /* dokunmatik: tık-toggle */
+  /* Bildirim sağlık kontrolü popup'ı */
+  .hpop{display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:31;width:250px;max-width:calc(100vw - 24px);
+    background:var(--card);border:1px solid var(--acc);border-radius:10px;padding:12px 14px;
+    font-size:12.5px;line-height:1.5;color:var(--tx2);font-weight:400;text-align:left;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+  .hpop.goster{display:block}
+  .hpop b{color:var(--tx)}
+  .hp-btns{display:flex;gap:8px;margin-top:10px}
+  .hp-btns button{flex:1;border:0;border-radius:8px;padding:7px 6px;font-size:12px;font-weight:600;cursor:pointer}
+  .hp-yes{background:var(--ok);color:#04140a}
+  .hp-no{background:var(--bg2);color:var(--tx2);border:1px solid var(--line)}
+  .hp-tekrar{margin-top:10px;width:100%;border:1px solid var(--line);background:var(--bg2);color:var(--tx2);
+    border-radius:8px;padding:7px;font-size:12px;font-weight:600;cursor:pointer}
 </style>
 </head>
 <body>
@@ -267,6 +279,12 @@
             Yöneticiler canlı yayına çıktığında PC veya mobil farketmeden <b>tarayıcından bildirim</b> alırsın — uygulama indirme yok, üyelik yok.
             <br>Bildirim ayarları cihaza özeldir.
             <br><br>📱 <b>iPhone kullanıcıları:</b> Paylaş → "Ana Ekrana Ekle" → o simgeden aç → sonra "<svg class="binfo" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22a2.4 2.4 0 0 0 2.4-2H9.6a2.4 2.4 0 0 0 2.4 2zm7.1-5.3-1.3-1.3V9.6c0-2.8-1.9-5.1-4.5-5.8v-.6a1.3 1.3 0 0 0-2.6 0v.6C8.1 4.5 6.2 6.8 6.2 9.6v5.8l-1.3 1.3a.8.8 0 0 0 .6 1.3h13a.8.8 0 0 0 .6-1.3z"/></svg> Bildirim al"a basarak bildirimlerini açabilir.
+          </div>
+          <div class="hpop" id="bildHealth">
+            <div id="hpSoru">📩 Test bildirimi gönderdik.<br><b>Cihazında göründü mü?</b>
+              <div class="hp-btns"><button class="hp-yes" id="hpYes">Evet, gördüm</button><button class="hp-no" id="hpNo">Hayır</button></div>
+            </div>
+            <div id="hpYardim" hidden></div>
           </div>
         </span>
       </div>
@@ -612,6 +630,49 @@ async function tick(){
     if(sub) sunucuyaKaydet(sub);   // self-heal: Supabase'de kalsın
   }
 
+  // ---- Bildirim sağlık kontrolü: abone olunca test at + "gördün mü?" sor ----
+  const hpop = document.getElementById("bildHealth");
+  const hpSoru = document.getElementById("hpSoru");
+  const hpYardim = document.getElementById("hpYardim");
+
+  function osYardim(){
+    const ua = navigator.userAgent;
+    if(/Windows/i.test(ua)) return "Muhtemelen <b>Windows bildirimleri</b> kapalı:<br>Ayarlar → Sistem → Bildirimler'i aç; listede <b>tarayıcın</b> için de açık olsun; <b>Odaklanma Yardımcısı</b>nı kapat.";
+    if(/Android/i.test(ua)) return "Android'de: <b>Ayarlar → Uygulamalar → tarayıcın → Bildirimler</b>'i aç; Rahatsız Etme'yi kapat.";
+    if(/iPhone|iPad|iPod/i.test(ua)) return "iPhone'da: <b>Ayarlar → Bildirimler → CEOBurada</b> (ana ekrana eklediğin) → aç; Odak modunu kapat.";
+    if(/Mac/i.test(ua)) return "Mac'te: <b>Sistem Ayarları → Bildirimler → tarayıcın</b> → aç; Rahatsız Etme'yi kapat.";
+    return "Cihazının bildirim ayarlarından tarayıcı bildirimlerini açman gerekiyor.";
+  }
+  async function testBildirimiGonder(){
+    try{
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification("CEOBurada — Test ✓", {
+        body:"Bu bir test bildirimidir. Bunu gördüysen bildirimlerin çalışıyor.",
+        icon:"/icon-192.png", badge:"/icon-192.png", tag:"ceoburada-test"
+      });
+    }catch(_){}
+  }
+  async function saglikKontrol(){
+    if(!hpop || !supported) return;
+    if(wrap) wrap.classList.remove("acik");        // info açıksa kapansın
+    hpYardim.hidden = true; hpYardim.innerHTML = "";
+    hpSoru.hidden = false;
+    await testBildirimiGonder();
+    hpop.classList.add("goster");
+  }
+  if(hpop){
+    document.getElementById("hpYes").addEventListener("click",(e)=>{ e.stopPropagation(); hpop.classList.remove("goster"); });
+    document.getElementById("hpNo").addEventListener("click",(e)=>{
+      e.stopPropagation();
+      hpSoru.hidden = true;
+      hpYardim.innerHTML = "🔕 <b>Bildirim görünmedi.</b><br>" + osYardim() +
+        "<br><button class='hp-tekrar' id='hpTekrar'>Açtım, tekrar test et</button>";
+      hpYardim.hidden = false;
+      document.getElementById("hpTekrar").addEventListener("click",(ev)=>{ ev.stopPropagation(); saglikKontrol(); });
+    });
+    document.addEventListener("click", ()=>{ hpop.classList.remove("goster"); });
+  }
+
   // Çan: aç ↔ kapat  (iPhone Safari'de → info popup)
   // Yön kararı GÖRÜNEN duruma göre → await'ten ÖNCE anında çevrilir (delay yok).
   bell.addEventListener("click", async ()=>{
@@ -626,7 +687,7 @@ async function tick(){
       if(perm !== "granted"){ try{ perm = await Notification.requestPermission(); }catch(_){}}
       if(perm !== "granted"){ bellGuncelle(); return; }
       bellDurum("bekliyor");                    // metin ANINDA açık, çan gri+nabız (abonelik arka planda)
-      try{ await aboneOl(); bellDurum("acik"); }   // bitti → çan renkli
+      try{ await aboneOl(); bellDurum("acik"); saglikKontrol(); }   // bitti → çan renkli + sağlık kontrolü
       catch(_){ bellGuncelle(); }              // başarısız → gerçek duruma dön
     }
   });
