@@ -747,8 +747,10 @@ async function tick(){
 (function(){
   const bar = document.getElementById("kurBar");
   if(!bar) return;
+  const test = new URLSearchParams(location.search).get("kurtest")==="1";   // GEÇİCİ: gerçek çubuğu görmek için ?kurtest=1
   const kurulu = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-  if(kurulu) return;   // zaten uygulama olarak açılmışsa gösterme
+  if(kurulu && !test) return;   // zaten uygulama olarak açılmışsa gösterme (test hariç)
+  if(test) bar.hidden = false;  // GEÇİCİ test gösterimi
 
   function beklemede(){   // "Sonra"/karar sonrası 14 gün erteleme
     const t = +localStorage.getItem("kur_ertele") || 0;
