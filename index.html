@@ -595,20 +595,20 @@ async function tick(){
   }
 
   // Çan: aç ↔ kapat  (iPhone Safari'de → info popup)
+  // Yön kararı GÖRÜNEN duruma (.on) göre → await'ten ÖNCE anında çevrilir (delay yok).
   bell.addEventListener("click", async ()=>{
     if(!supported){ if(wrap) wrap.classList.add("acik"); return; }
-    const sub = await mevcutAbonelik();
-    if(sub){
-      bellDurum(false);                    // ANINDA kapalı göster
-      try{ await sub.unsubscribe(); }catch(_){}
-      bellGuncelle();                      // arka planda gerçekle senkron
-    }else{
+    if(bell.classList.contains("on")){        // açık → KAPAT (anında)
+      bellDurum(false);
+      try{ const s = await mevcutAbonelik(); if(s) await s.unsubscribe(); }catch(_){}
+      bellGuncelle();
+    }else{                                     // kapalı → AÇ
       let perm = Notification.permission;
       if(perm !== "granted"){ try{ perm = await Notification.requestPermission(); }catch(_){}}
       if(perm !== "granted"){ bellGuncelle(); return; }
-      bellDurum(true);                     // izin verildi → ANINDA açık göster (abonelik arka planda)
+      bellDurum(true);                         // izin alındı → anında açık (abonelik arka planda)
       try{ await aboneOl(); }catch(_){}
-      bellGuncelle();                      // arka planda gerçekle senkron (başarısızsa geri al)
+      bellGuncelle();
     }
   });
 
