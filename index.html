@@ -336,6 +336,11 @@ function renderVideos(){
 
 /* ---- Yayınları gizle/göster (mobil veri tasarrufu) ---- */
 let videoGizli = localStorage.getItem("videoGizli")==="1";
+// Bildirimden gelindiyse (?b=1) yayınları zorla göster — kayıtlı tercihi DEĞİŞTİRMEDEN
+if(new URLSearchParams(location.search).get("b")==="1"){
+  videoGizli = false;
+  try{ history.replaceState(null,"",location.pathname); }catch(_){}
+}
 function applyVideoGizli(){
   document.body.classList.toggle("novideo", videoGizli);
   const btn = document.getElementById("vidToggle");
