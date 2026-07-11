@@ -264,6 +264,7 @@
   .hp-no{background:var(--bg2);color:var(--tx2);border:1px solid var(--line)}
   .hp-tekrar{margin-top:10px;width:100%;border:1px solid var(--line);background:var(--bg2);color:var(--tx2);
     border-radius:8px;padding:7px;font-size:12px;font-weight:600;cursor:pointer}
+  .hp-ok{color:var(--ok);font-weight:700}
 </style>
 </head>
 <body>
@@ -661,7 +662,13 @@ async function tick(){
     hpop.classList.add("goster");
   }
   if(hpop){
-    document.getElementById("hpYes").addEventListener("click",(e)=>{ e.stopPropagation(); hpop.classList.remove("goster"); });
+    document.getElementById("hpYes").addEventListener("click",(e)=>{
+      e.stopPropagation();
+      hpSoru.hidden = true;
+      hpYardim.innerHTML = "<span class='hp-ok'>✅ Test başarılı!</span><br>Artık yöneticiler canlı yayına çıktığında anlık bildirim alacaksın.";
+      hpYardim.hidden = false;
+      setTimeout(()=>{ hpop.classList.remove("goster"); }, 2600);
+    });
     document.getElementById("hpNo").addEventListener("click",(e)=>{
       e.stopPropagation();
       hpSoru.hidden = true;
