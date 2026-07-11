@@ -356,11 +356,18 @@ function renderVideos(){
 
 /* ---- Yayınları gizle/göster (mobil veri tasarrufu) ---- */
 let videoGizli = localStorage.getItem("videoGizli")==="1";
-// Bildirimden gelindiyse (?b=1) yayınları zorla göster — kayıtlı tercihi DEĞİŞTİRMEDEN
-if(new URLSearchParams(location.search).get("b")==="1"){
+// Bildirimden gelindiyse (?b=1): yayınları zorla göster + varsa o kanala odaklan — GEÇİCİ (tercih bozulmaz)
+(function(){
+  const q = new URLSearchParams(location.search);
+  if(q.get("b") !== "1") return;
   videoGizli = false;
+  const k = q.get("k");
+  if(k && KANALLAR.includes(k)){
+    secili = k;   // renderVideos + loadFeed bu kanala odaklanır
+    document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active", x.dataset.k === k));
+  }
   try{ history.replaceState(null,"",location.pathname); }catch(_){}
-}
+})();
 function applyVideoGizli(){
   document.body.classList.toggle("novideo", videoGizli);
   const btn = document.getElementById("vidToggle");
