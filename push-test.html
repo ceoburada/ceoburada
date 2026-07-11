@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CEOBurada — Bildirim Testi</title>
+<style>
+  :root{--bg:#0b0e14;--bg2:#141a24;--line:#232c3a;--tx:#e6edf6;--tx2:#9aa7b8;--tx3:#6b7788;--ac:#e23b3b}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .kart{max-width:440px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:28px 24px}
+  h1{font-size:19px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+  .dot{width:11px;height:11px;border-radius:50%;background:var(--ac);box-shadow:0 0 12px 2px rgba(226,59,59,.6)}
+  p{color:var(--tx2);font-size:14px;line-height:1.6;margin:8px 0 20px}
+  button{width:100%;border:0;border-radius:10px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px}
+  .b1{background:var(--ac);color:#fff}
+  .b2{background:transparent;color:var(--tx2);border:1px solid var(--line)}
+  .b2:hover{color:var(--tx);border-color:var(--tx3)}
+  #durum{margin-top:16px;font-size:13px;color:var(--tx3);white-space:pre-wrap;line-height:1.6;
+    padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--line);min-height:20px}
+  .ios{margin-top:14px;font-size:12px;color:var(--tx3);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="kart">
+  <h1><span class="dot"></span>Bildirim Testi</h1>
+  <p>Favori şirketlerin canlı yayına çıktığında telefonuna anında bildirim — uygulama indirmeden. Aşağıdan dene.</p>
+  <button class="b1" id="ac">🔔 Bildirimleri Aç</button>
+  <button class="b2" id="yerel">Yerel test bildirimi gönder</button>
+  <div id="durum">Hazır.</div>
+  <div class="ios">📱 iPhone'daysan: önce <b>Paylaş → Ana Ekrana Ekle</b>, sonra o simgeden aç, ardından "Bildirimleri Aç"a bas. (iOS'ta push sadece böyle çalışır.)</div>
+</div>
+<script>
+const VAPID_PUBLIC = "BE44l_yPloApGEU1XEI5YsTAvGNpyRaaa6Eq5beyIqOWfnRaYkFWaJa9bTe0BX8vqekisNvXrG-WMSjlEI6nx1M";
+const SB_URL = "https://tnvslslbnwkyfxyfgwua.supabase.co";
+const SB_KEY = "sb_publishable_DhYTkPGL8B48klEfO6caGw_b0SAn93l";
+
+const durumEl = document.getElementById('durum');
+function durum(t){ durumEl.textContent = t; }
+
+function b64ToU8(base64){
+  const pad = "=".repeat((4 - base64.length % 4) % 4);
+  const b64 = (base64 + pad).replace(/-/g,"+").replace(/_/g,"/");
+  const raw = atob(b64);
+  return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+}
+
+async function ac(){
+  try{
+    if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+      durum('❌ Bu tarayıcı push bildirimi desteklemiyor.'); return;
+    }
+    durum('İzin isteniyor…');
+    const perm = await Notification.requestPermission();
+    if(perm !== 'granted'){ durum('❌ Bildirim izni verilmedi.'); return; }
+
+    durum('Service worker kaydediliyor…');
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+
+    durum('Abonelik oluşturuluyor…');
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: b64ToU8(VAPID_PUBLIC)
+      });
+    }
+    const j = sub.toJSON();
+
+    durum('Sunucuya kaydediliyor…');
+    const r = await fetch(SB_URL + '/rest/v1/push_aboneleri', {
+      method:'POST',
+      headers:{
+        'apikey':SB_KEY,
+        'Authorization':'Bearer '+SB_KEY,
+        'Content-Type':'application/json',
+        'Prefer':'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({ endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth })
+    });
+    if(r.ok || r.status===201 || r.status===200){
+      durum('✅ Abone oldun!\nArtık sana site kapalıyken bile test bildirimi gönderebiliriz.');
+    }else{
+      const t = await r.text();
+      durum('⚠️ Abone olundu ama kayıt hatası ('+r.status+'):\n'+t+'\n\n(Supabase tablosu henüz kurulmamış olabilir.)');
+    }
+  }catch(e){ durum('❌ Hata: '+e.message); }
+}
+
+async function yerelTest(){
+  try{
+    if(Notification.permission !== 'granted'){ durum('Önce "Bildirimleri Aç"a bas.'); return; }
+    const reg = await navigator.serviceWorker.ready;
+    await reg.showNotification('CEOBurada', {
+      body:'Bu bir yerel test bildirimi 🎉 Gerçek sistem böyle görünecek.',
+      icon:'/icon-192.png', badge:'/icon-192.png'
+    });
+    durum('Yerel bildirim gönderildi (bu, sunucusuz basit test).');
+  }catch(e){ durum('❌ Hata: '+e.message); }
+}
+
+document.getElementById('ac').addEventListener('click', ac);
+document.getElementById('yerel').addEventListener('click', yerelTest);
+</script>
+</body>
+</html>
