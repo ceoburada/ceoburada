@@ -112,15 +112,15 @@
   .search::placeholder{color:var(--tx3);text-transform:none}
 
   main{max-width:1200px;margin:0 auto;padding:18px 20px 60px;
-    display:grid;grid-template-columns:1fr;align-content:start;
+    display:grid;grid-template-columns:minmax(0,1fr);align-content:start;
     grid-template-areas:"videos" "demec" "dergi"}
   .area-videos{grid-area:videos}
   .area-demec{grid-area:demec}
   .area-dergi{grid-area:dergi}
 
   /* Video alanı */
-  #videos{display:grid;gap:4px;grid-template-columns:1fr 1fr}
-  #videos.single{grid-template-columns:1fr}
+  #videos{display:grid;gap:4px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  #videos.single{grid-template-columns:minmax(0,1fr)}
   /* 2x2 ızgara tek ekran gibi: sadece DIŞ köşeler yuvarlak, iç köşeler keskin */
   #videos:not(.single) .vid{border-radius:0}
   #videos:not(.single) .vid:nth-child(1){border-top-left-radius:var(--radius)}
@@ -147,7 +147,7 @@
   .vid.ext .play .lbl{font-weight:700;font-size:13px;background:rgba(0,0,0,.55);padding:5px 12px;border-radius:999px}
   .vid.ext:hover .thumb{filter:brightness(.5)}
   @media(max-width:760px){
-    #videos{grid-template-columns:1fr}
+    #videos{grid-template-columns:minmax(0,1fr)}
     /* tek sütun: en üst video üst köşeler, en alt video alt köşeler */
     #videos:not(.single) .vid:nth-child(1){border-radius:var(--radius) var(--radius) 0 0}
     #videos:not(.single) .vid:nth-child(2),
