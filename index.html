@@ -536,7 +536,7 @@ async function loadDergi(){
   if(imza === sonDergiImza) return;
   sonDergiImza = imza;
   if(!rows.length){
-    box.innerHTML = `<div class="empty">${aramaKod ? `"${esc(aramaKod)}" için dergi yayını bulunamadı.` : "Henüz dergi yayını yok. Dergi taramaları geldikçe burada görünecek."}</div>`;
+    box.innerHTML = `<div class="empty">${aramaKod ? `"${esc(aramaKod)}" için demeç bulunamadı.` : "Henüz dergi demeci yok. Dergi taramaları geldikçe burada görünecek."}</div>`;
     return;
   }
   box.innerHTML = rows.map(dergiCardHTML).join("");
