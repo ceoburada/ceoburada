@@ -326,13 +326,13 @@
   <div class="area-demec">
     <div class="feedhead"><h2 id="feedTitle">Son TV Demeçleri</h2>
       <input id="search" class="search" type="search" inputmode="text" autocomplete="off"
-             maxlength="12" placeholder="Hisse ara"></div>
+             maxlength="12" placeholder="THYAO"></div>
     <div id="feed"></div>
   </div>
   <div class="area-dergi">
     <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2>
       <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
-             maxlength="12" placeholder="Hisse ara"></div>
+             maxlength="12" placeholder="THYAO"></div>
     <div id="dergiFeed"></div>
   </div>
 </main>
@@ -574,13 +574,6 @@ document.getElementById("tabs").addEventListener("click", e=>{
 /* ---- Şirket kodu arama: TV + dergi başlıklarında İKİ senkron kutu ---- */
 (function(){
   const kutular = [...document.querySelectorAll(".search")];
-  // Arama ipucu: dar ekranda kısa (kutuya sığar), geniş ekranda örnekli
-  function ipucuAyarla(){
-    const ph = window.matchMedia("(max-width:600px)").matches ? "Hisse ara" : "Hisse ara (örn. THYAO)";
-    kutular.forEach(k=>{ if(k.getAttribute("placeholder") !== ph) k.setAttribute("placeholder", ph); });
-  }
-  ipucuAyarla();
-  window.addEventListener("resize", ipucuAyarla);
   let t;
   kutular.forEach(inp=>{
     inp.addEventListener("input", ()=>{
