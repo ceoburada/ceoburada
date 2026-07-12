@@ -493,13 +493,17 @@ function eskiKopya(link, card){   // clipboard API yoksa
     kopyaBildir(card);
   }catch(_){ prompt("Bağlantı:", link); }
 }
-function kopyaBildir(card){   // ipucunu "Bağlantı kopyalandı" yap, 1.6 sn sonra geri al
+function kopyaBildir(card){   // ipucunu "Bağlantı kopyalandı" yap, 1 sn sonra geri al
   const tip = card.querySelector(".paybtn .tip"); if(!tip) return;
   const pb = tip.parentElement;
   tip.textContent = "Bağlantı kopyalandı";
   pb.classList.add("kopyalandi");
-  clearTimeout(pb._t);
-  pb._t = setTimeout(()=>{ pb.classList.remove("kopyalandi"); tip.textContent = "Bağlantıyı kopyala"; }, 1000);
+  clearTimeout(pb._t); clearTimeout(pb._t2);
+  pb._t = setTimeout(()=>{
+    pb.classList.remove("kopyalandi");                    // solmaya başlar
+    // metni ancak solma bittikten sonra değiştir (yoksa solarken eski yazı görünür)
+    pb._t2 = setTimeout(()=>{ tip.textContent = "Bağlantıyı kopyala"; }, 220);
+  }, 1000);
 }
 
 function cardHTML(r){
