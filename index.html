@@ -484,7 +484,7 @@ async function loadFeed(){
   if(aramaKod){
     // Şirket kodu araması: o koda ait son 10 röportaj (kanal filtresini ezer)
     q = `roportaj?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${SEL}&order=guncelleme.desc&limit=10`;
-    baslik = `${aramaKod} · TV Demeçleri`;
+    baslik = secili==="all" ? "Son TV Demeçleri" : `${AD[secili]} — TV Demeçleri`;   // arama başlığı değiştirmez
     bosMesaj = `"${esc(aramaKod)}" için demeç bulunamadı.`;
   } else {
     // Tümü: son 10 röportaj · tek kanal: son 5 (sayfa taze ve kısa kalsın)
@@ -531,7 +531,7 @@ async function loadDergi(){
   if(aramaKod) q = `dergi?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${DERGI_SEL}&order=guncelleme.desc&limit=5`;
   const rows = await sb(q);
   const box = document.getElementById("dergiFeed");
-  document.getElementById("dergiTitle").textContent = aramaKod ? `${aramaKod} · Dergi Demeçleri` : "Son Dergi Demeçleri";
+  document.getElementById("dergiTitle").textContent = "Son Dergi Demeçleri";   // arama başlığı değiştirmez
   const imza = JSON.stringify([aramaKod, rows]);
   if(imza === sonDergiImza) return;
   sonDergiImza = imza;
