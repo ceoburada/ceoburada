@@ -317,7 +317,7 @@
     <div class="tab" data-k="Cnbce">Cnbce</div>
     <div class="tab" data-k="EkoTurk">EkoTürk</div>
     <div class="tab" data-k="Apara">Apara</div>
-    <div class="tab vgiz" id="vidToggle">Yayınları Gizle</div>
+    <div class="tab vgiz" id="vidToggle">Canlı Yayınları Gizle</div>
   </div>
 </header>
 
@@ -326,13 +326,13 @@
   <div class="area-demec">
     <div class="feedhead"><h2 id="feedTitle">Son TV Demeçleri</h2>
       <input id="search" class="search" type="search" inputmode="text" autocomplete="off"
-             maxlength="12" placeholder="Hisse ara (örn. THYAO)"></div>
+             maxlength="12" placeholder="Hisse ara"></div>
     <div id="feed"></div>
   </div>
   <div class="area-dergi">
     <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2>
       <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
-             maxlength="12" placeholder="Hisse ara (örn. THYAO)"></div>
+             maxlength="12" placeholder="Hisse ara"></div>
     <div id="dergiFeed"></div>
   </div>
 </main>
@@ -429,7 +429,7 @@ let videoGizli = localStorage.getItem("videoGizli")==="1";
 function applyVideoGizli(){
   document.body.classList.toggle("novideo", videoGizli);
   const btn = document.getElementById("vidToggle");
-  btn.textContent = videoGizli ? "Yayınları Göster" : "Yayınları Gizle";
+  btn.textContent = videoGizli ? "Canlı Yayınları Göster" : "Canlı Yayınları Gizle";
   btn.classList.toggle("on", videoGizli);
   // İlk açılışta canlı ID'ler henüz yüklenmediyse çizimi loadCanli yapar
   // ("yayın yok" kartlarının anlık parlamasını önler)
@@ -574,6 +574,13 @@ document.getElementById("tabs").addEventListener("click", e=>{
 /* ---- Şirket kodu arama: TV + dergi başlıklarında İKİ senkron kutu ---- */
 (function(){
   const kutular = [...document.querySelectorAll(".search")];
+  // Arama ipucu: dar ekranda kısa (kutuya sığar), geniş ekranda örnekli
+  function ipucuAyarla(){
+    const ph = window.matchMedia("(max-width:600px)").matches ? "Hisse ara" : "Hisse ara (örn. THYAO)";
+    kutular.forEach(k=>{ if(k.getAttribute("placeholder") !== ph) k.setAttribute("placeholder", ph); });
+  }
+  ipucuAyarla();
+  window.addEventListener("resize", ipucuAyarla);
   let t;
   kutular.forEach(inp=>{
     inp.addEventListener("input", ()=>{
