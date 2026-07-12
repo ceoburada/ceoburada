@@ -321,7 +321,7 @@
     <div class="tab" data-k="Cnbce">Cnbce</div>
     <div class="tab" data-k="EkoTurk">EkoTürk</div>
     <div class="tab" data-k="Apara">Apara</div>
-    <div class="tab vgiz" id="vidToggle">Canlı Yayınları Gizle</div>
+    <div class="tab vgiz" id="vidToggle">Canlı Yayınları Kapat</div>
   </div>
 </header>
 
@@ -443,7 +443,7 @@ let paylasilanGrup = null;   // ?r=<grup> → paylaşım linkiyle gelen demeç
 function applyVideoGizli(){
   document.body.classList.toggle("novideo", videoGizli);
   const btn = document.getElementById("vidToggle");
-  btn.textContent = videoGizli ? "Canlı Yayınları Göster" : "Canlı Yayınları Gizle";
+  btn.textContent = videoGizli ? "Canlı Yayınları Aç" : "Canlı Yayınları Kapat";
   btn.classList.toggle("on", videoGizli);
   // İlk açılışta canlı ID'ler henüz yüklenmediyse çizimi loadCanli yapar
   // ("yayın yok" kartlarının anlık parlamasını önler)
@@ -523,6 +523,13 @@ document.getElementById("feed").addEventListener("click", async e=>{
   const el = e.target.closest(".rp"); if(!el) return;   // balonun HER yeri tıklanabilir
   if(el.classList.contains("solo")) return;             // tek demeç → tamamen tepkisiz
   if(String(window.getSelection())) return;             // metin seçildiyse toggle etme
+  await ac(el, !el.classList.contains("open"));
+});
+// Paylaşılan demeç de kapatılıp açılabilsin
+document.getElementById("paylasilan").addEventListener("click", async e=>{
+  const el = e.target.closest(".rp"); if(!el) return;
+  if(el.classList.contains("solo")) return;
+  if(String(window.getSelection())) return;
   await ac(el, !el.classList.contains("open"));
 });
 
