@@ -217,6 +217,10 @@
   .rp .cm .cmt{color:var(--tx3);font-size:11px;margin-right:8px;font-variant-numeric:tabular-nums}
   .rp .cm.mn{color:var(--tx);font-weight:700}
   .empty{color:var(--tx3);text-align:center;padding:40px;border:1px dashed var(--line);border-radius:12px}
+  /* Paylaşım linkiyle gelen demeç (en üstte, vurgulu) */
+  #paylasilanWrap{margin-bottom:26px}
+  .prozet{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--acc);font-weight:700;margin:0 2px 9px}
+  #paylasilan .rp{border:1px solid var(--acc);box-shadow:0 0 0 3px rgba(62,166,255,.12)}
   footer{max-width:760px;margin:0 auto;padding:26px 20px 40px;color:#49525f;font-size:12px;line-height:1.6;text-align:center}
   footer a{color:var(--tx3);text-decoration:none}
   footer a:hover{color:var(--tx2)}
@@ -324,6 +328,10 @@
 <main>
   <div class="area-videos"><div id="videos"></div></div>
   <div class="area-demec">
+    <div id="paylasilanWrap" hidden>
+      <div class="prozet">📌 Bu demeç sana paylaşıldı</div>
+      <div id="paylasilan"></div>
+    </div>
     <div class="feedhead"><h2 id="feedTitle">Son TV Demeçleri</h2>
       <input id="search" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
@@ -414,17 +422,23 @@ function renderVideos(){
 
 /* ---- Yayınları gizle/göster (mobil veri tasarrufu) ---- */
 let videoGizli = localStorage.getItem("videoGizli")==="1";
-// Bildirimden gelindiyse (?b=1): yayınları zorla göster + varsa o kanala odaklan — GEÇİCİ (tercih bozulmaz)
+let paylasilanGrup = null;   // ?r=<grup> → paylaşım linkiyle gelen demeç
+// URL parametreleri — GEÇİCİ (kayıtlı tercih bozulmaz)
 (function(){
   const q = new URLSearchParams(location.search);
-  if(q.get("b") !== "1") return;
-  videoGizli = false;
-  const k = q.get("k");
-  if(k && KANALLAR.includes(k)){
-    secili = k;   // renderVideos + loadFeed bu kanala odaklanır
-    document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active", x.dataset.k === k));
+  // ?b=1: bildirimden geldi → yayınları zorla göster + varsa o kanala odaklan
+  if(q.get("b") === "1"){
+    videoGizli = false;
+    const k = q.get("k");
+    if(k && KANALLAR.includes(k)){
+      secili = k;
+      document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active", x.dataset.k === k));
+    }
   }
-  try{ history.replaceState(null,"",location.pathname); }catch(_){}
+  // ?r=<grup>: paylaşım linki → yayınlar buton yoluyla KAPALI (kanal butonları durur, isteyen açar), o demeç en üstte
+  const r = q.get("r");
+  if(r){ videoGizli = true; paylasilanGrup = r; }
+  if(q.get("b")==="1" || r){ try{ history.replaceState(null,"",location.pathname); }catch(_){} }
 })();
 function applyVideoGizli(){
   document.body.classList.toggle("novideo", videoGizli);
@@ -594,8 +608,20 @@ async function tick(){
   try{ await loadFeed(); await loadDergi(); setStatus("güncel · "+new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})); }
   catch(e){ setStatus("bağlantı hatası"); }
 }
+async function paylasilaniYukle(){   // ?r=<grup> ile gelen demeci en üstte AÇIK göster
+  if(!paylasilanGrup) return;
+  const p = await sb(`roportaj?grup=eq.${encodeURIComponent(paylasilanGrup)}&select=${SEL}&limit=1`);
+  if(!p.length) return;
+  const box = document.getElementById("paylasilan");
+  box.innerHTML = cardHTML(p[0]);
+  const rp = box.querySelector(".rp");
+  await loadCumleler(rp);
+  rp.classList.add("open");
+  document.getElementById("paylasilanWrap").hidden = false;
+}
 (async function init(){
   applyVideoGizli();                 // kayıtlı tercih (gizli/görünür) baştan uygulanır
+  paylasilaniYukle();                // paylaşım linkiyle (?r=) gelindiyse o demeci en üstte aç
   await loadCanli();
   await tick();
   setInterval(loadFeed, 30000);      // demeç akışı 30 sn'de bir
