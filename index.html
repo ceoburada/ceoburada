@@ -631,6 +631,15 @@ async function tick(){
     }catch(_){ return null; }
   }
 
+  function cihazId(){   // tarayıcı başına kalıcı rastgele kimlik (dedup için)
+    let d = localStorage.getItem("cihaz_id");
+    if(!d){
+      d = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+          : (Date.now().toString(36) + "-" + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
+      localStorage.setItem("cihaz_id", d);
+    }
+    return d;
+  }
   async function sunucuyaKaydet(sub){
     const j = sub.toJSON();
     try{
@@ -638,7 +647,7 @@ async function tick(){
         method:"POST",
         headers:{ apikey:SUPABASE_KEY, Authorization:"Bearer "+SUPABASE_KEY,
                   "Content-Type":"application/json", Prefer:"return=minimal" },
-        body: JSON.stringify({ endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth })
+        body: JSON.stringify({ endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth, device_id: cihazId() })
       });
     }catch(_){}
   }
