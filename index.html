@@ -202,7 +202,7 @@
   .rp.rp-dergi{border-left-color:#a78bfa}
   .rp .badge.badge-dergi{color:#c4b5fd;border-color:#3a2f5a}
   .rp .time{color:var(--tx3);font-size:12px}
-  .rp .meta{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .rp .meta{position:absolute;left:15px;bottom:10px;display:flex;align-items:center;gap:6px}
   .rp .cnt{color:var(--tx3);font-size:12px}
   .rp .chev{color:var(--tx2);font-size:16px;line-height:1;transition:.2s}
   .rp.open .chev{transform:rotate(180deg)}
@@ -241,13 +241,11 @@
   .flegal{font-size:12px;color:#49525f}
   .xfoot{display:inline-flex;align-items:center;color:var(--tx3);vertical-align:middle}
   footer a:hover{color:var(--acc)}
-  /* Mobil: '+N daha ▾' başlık satırında değil, baloncuğun sağ ALTINDA dursun */
+  /* '+N daha ▾' artık her ekranda baloncuğun sol altında (base .rp .meta kuralında) */
   @media(max-width:600px){
     /* İsim/kod hep 1. satırı tek başına kaplar → kanal adı + tarih ünvan boş olsa da
        daima bir alt satırda kalır (standart görünüm) */
     .rp .who{flex-basis:100%}
-    /* +N daha ▾ sol alta (paylaş simgesi sağ altta durduğu için) */
-    .rp .meta{position:absolute;left:15px;bottom:10px;right:auto;margin-left:0}
   }
   /* Bildirim çanı + info açıklaması */
   .bildwrap{position:relative;display:inline-flex;align-items:center;gap:6px}
