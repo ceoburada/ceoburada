@@ -211,11 +211,18 @@
   .rp:not(.solo):hover{background:#1b2433}
   .rp .manset{padding:0 15px 38px;color:var(--tx);font-size:15.5px;line-height:1.5}
   .rp .cumleler{display:none;flex-direction:column;gap:10px;padding:4px 15px 40px;border-top:1px solid var(--line)}
-  .paybtn{position:absolute;right:10px;bottom:8px;display:inline-flex;align-items:center;gap:5px;z-index:2;
-    font-size:12px;color:var(--tx3);background:transparent;border:1px solid var(--line);
-    border-radius:999px;padding:3px 10px;cursor:pointer;user-select:none;transition:.15s}
-  .paybtn svg{opacity:.85}
+  .paybtn{position:absolute;right:10px;bottom:8px;width:30px;height:30px;z-index:3;
+    display:inline-flex;align-items:center;justify-content:center;
+    color:var(--tx3);background:transparent;border:1px solid var(--line);
+    border-radius:8px;cursor:pointer;user-select:none;transition:.15s}
+  .paybtn svg{opacity:.9}
   @media(hover:hover){ .paybtn:hover{color:var(--acc);border-color:var(--acc);background:rgba(62,166,255,.08)} }
+  .paybtn .tip{position:absolute;bottom:calc(100% + 7px);right:0;white-space:nowrap;
+    background:#0d1420;color:var(--tx);border:1px solid var(--line);border-radius:7px;
+    padding:5px 9px;font-size:12px;font-weight:600;opacity:0;transform:translateY(3px);
+    pointer-events:none;transition:opacity .15s,transform .15s;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+  @media(hover:hover){ .paybtn:hover .tip{opacity:1;transform:translateY(0)} }
+  .paybtn.kopyalandi .tip{opacity:1;transform:translateY(0);color:var(--ok);border-color:#204b34}
   .rp.open .manset{display:none}
   .rp.open .cumleler{display:flex}
   .rp .cm{font-size:15px;line-height:1.5;color:#c4cddb}
@@ -464,24 +471,35 @@ function tarih(g){ if(!g) return ""; try{ return new Date(g+"T00:00:00")
   .toLocaleDateString("tr-TR",{day:"2-digit",month:"short",year:"numeric"}); }catch(e){ return g; } }
 function saatKisa(s){ return (s||"").replace(/^(\d{1,2}:\d{2}):\d{2}/, "$1"); }   // saniyeyi at: 14:30:45 → 14:30
 
-const PAYICO = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>`;
-function paylas(card){
+const PAYICO = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>`;
+function paylas(card){   // sadece bağlantıyı panoya kopyala (paylaşım kartı yok)
   if(!card) return;
-  const token = card.dataset.token;
-  if(!token) return;
-  const manset = card.dataset.manset || "";
-  const kim = (card.querySelector(".who")||{textContent:""}).textContent.trim();
-  const kanal = (card.querySelector(".badge")||{textContent:""}).textContent.trim();
+  const token = card.dataset.token; if(!token) return;
   const link = `https://ceoburada.com/?r=${token}`;
-  const metin = (manset ? `"${manset}"\n\n` : "") + `— ${kim}${kanal?" · "+kanal:""} · CEOBurada\n${link}`;
-  if(navigator.share){ navigator.share({text:metin, url:link}).catch(()=>{}); return; }
-  if(navigator.clipboard){ navigator.clipboard.writeText(metin).then(()=>payFlash(card)).catch(()=>prompt("Paylaşım linki:", link)); return; }
-  prompt("Paylaşım linki:", link);
+  const ok = ()=>kopyaBildir(card);
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(link).then(ok, ()=>eskiKopya(link, card));
+      return;
+    }
+  }catch(_){}
+  eskiKopya(link, card);
 }
-function payFlash(card){   // masaüstünde kopyalandı geri bildirimi
-  const pb = card.querySelector(".paybtn .pl"); if(!pb) return;
-  const eski = pb.textContent; pb.textContent = "Kopyalandı ✓";
-  setTimeout(()=>{ pb.textContent = eski; }, 1600);
+function eskiKopya(link, card){   // clipboard API yoksa
+  try{
+    const ta = document.createElement("textarea");
+    ta.value = link; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+    kopyaBildir(card);
+  }catch(_){ prompt("Bağlantı:", link); }
+}
+function kopyaBildir(card){   // ipucunu "Bağlantı kopyalandı" yap, 1.6 sn sonra geri al
+  const tip = card.querySelector(".paybtn .tip"); if(!tip) return;
+  const pb = tip.parentElement;
+  tip.textContent = "Bağlantı kopyalandı";
+  pb.classList.add("kopyalandi");
+  clearTimeout(pb._t);
+  pb._t = setTimeout(()=>{ pb.classList.remove("kopyalandi"); tip.textContent = "Bağlantıyı kopyala"; }, 1600);
 }
 
 function cardHTML(r){
@@ -497,7 +515,7 @@ function cardHTML(r){
     </div>
     <div class="manset">${esc(r.manset||"")}</div>
     <div class="cumleler" data-loaded="0"></div>
-    ${r.token?`<span class="paybtn" aria-label="Paylaş" title="Paylaş">${PAYICO}<span class="pl">Paylaş</span></span>`:""}
+    ${r.token?`<span class="paybtn" aria-label="Bağlantıyı kopyala">${PAYICO}<span class="tip">Bağlantıyı kopyala</span></span>`:""}
   </div>`;
 }
 async function loadCumleler(el){
@@ -577,7 +595,7 @@ function dergiCardHTML(r){
       <span class="time">${esc(r.sayi||"")}${r.sayfa?" · "+esc(r.sayfa):""}</span>
     </div>
     <div class="manset">${esc(r.manset||"")}</div>
-    ${r.token?`<span class="paybtn" aria-label="Paylaş" title="Paylaş">${PAYICO}<span class="pl">Paylaş</span></span>`:""}
+    ${r.token?`<span class="paybtn" aria-label="Bağlantıyı kopyala">${PAYICO}<span class="tip">Bağlantıyı kopyala</span></span>`:""}
   </div>`;
 }
 async function loadDergi(){
