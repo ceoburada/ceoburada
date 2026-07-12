@@ -499,7 +499,7 @@ function kopyaBildir(card){   // ipucunu "Bağlantı kopyalandı" yap, 1.6 sn so
   tip.textContent = "Bağlantı kopyalandı";
   pb.classList.add("kopyalandi");
   clearTimeout(pb._t);
-  pb._t = setTimeout(()=>{ pb.classList.remove("kopyalandi"); tip.textContent = "Bağlantıyı kopyala"; }, 1600);
+  pb._t = setTimeout(()=>{ pb.classList.remove("kopyalandi"); tip.textContent = "Bağlantıyı kopyala"; }, 1000);
 }
 
 function cardHTML(r){
