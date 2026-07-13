@@ -340,13 +340,13 @@
       <div class="prozet">📌 Bu demeç sana paylaşıldı</div>
       <div id="paylasilan"></div>
     </div>
-    <div class="feedhead"><h2 id="feedTitle">Son TV Demeçleri</h2>
+    <div class="feedhead"><h2 id="feedTitle">Son TV Demeçleri</h2><span class="cnt" id="feedCnt"></span>
       <input id="search" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="feed"></div>
   </div>
   <div class="area-dergi">
-    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2>
+    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2><span class="cnt" id="dergiCnt"></span>
       <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="dergiFeed"></div>
@@ -541,15 +541,16 @@ async function ac(el, open){
 let sonFeedImza = "";
 const SEL = "grup,kod,etiket,kanal,gun,ilk_saat,manset,cumle_sayisi,token";
 async function loadFeed(){
-  let q, baslik, bosMesaj;
+  let q, baslik, bosMesaj, lim;
   if(aramaKod){
-    // Şirket kodu araması: o koda ait son 10 röportaj (kanal filtresini ezer)
-    q = `roportaj?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${SEL}&order=guncelleme.desc&limit=5`;
+    // Şirket kodu araması: o koda ait son 5 röportaj (kanal filtresini ezer)
+    lim = 5;
+    q = `roportaj?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${SEL}&order=guncelleme.desc&limit=${lim}`;
     baslik = secili==="all" ? "Son TV Demeçleri" : `${AD[secili]} — TV Demeçleri`;   // arama başlığı değiştirmez
     bosMesaj = `"${esc(aramaKod)}" için demeç bulunamadı.`;
   } else {
     // Tümü: son 15 röportaj · tek kanal: son 5 (sayfa taze ve kısa kalsın)
-    const lim = secili==="all" ? 15 : 5;
+    lim = secili==="all" ? 15 : 5;
     q = `roportaj?select=${SEL}&order=guncelleme.desc&limit=${lim}`;
     if(secili!=="all") q += `&kanal=eq.${encodeURIComponent(secili)}`;
     baslik = secili==="all" ? "Son TV Demeçleri" : `${AD[secili]} — TV Demeçleri`;
@@ -558,6 +559,9 @@ async function loadFeed(){
   const rows = await sb(q);
   const feed = document.getElementById("feed");
   document.getElementById("feedTitle").textContent = baslik;
+  // Aramada kullanıcı kaç sonuç gördüğünü bilsin: dolu=cap ise "en yeni N", azsa "N demeç"
+  const feedCnt = document.getElementById("feedCnt");
+  if(feedCnt) feedCnt.textContent = (aramaKod && rows.length) ? (rows.length >= lim ? `en yeni ${lim}` : `${rows.length} demeç`) : "";
   // Veri değişmediyse DOM'a dokunma — açık akordiyon kapanmasın, sayfa oynamasın
   const imza = JSON.stringify([aramaKod||secili, rows]);
   if(imza === sonFeedImza) return;
@@ -610,6 +614,8 @@ async function loadDergi(){
   const rows = await sb(q);
   const box = document.getElementById("dergiFeed");
   document.getElementById("dergiTitle").textContent = "Son Dergi Demeçleri";   // arama başlığı değiştirmez
+  const dergiCnt = document.getElementById("dergiCnt");
+  if(dergiCnt) dergiCnt.textContent = (aramaKod && rows.length) ? (rows.length >= 5 ? "en yeni 5" : `${rows.length} demeç`) : "";
   const imza = JSON.stringify([aramaKod, rows]);
   if(imza === sonDergiImza) return;
   sonDergiImza = imza;
