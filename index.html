@@ -544,12 +544,12 @@ async function loadFeed(){
   let q, baslik, bosMesaj;
   if(aramaKod){
     // Şirket kodu araması: o koda ait son 10 röportaj (kanal filtresini ezer)
-    q = `roportaj?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${SEL}&order=guncelleme.desc&limit=10`;
+    q = `roportaj?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${SEL}&order=guncelleme.desc&limit=5`;
     baslik = secili==="all" ? "Son TV Demeçleri" : `${AD[secili]} — TV Demeçleri`;   // arama başlığı değiştirmez
     bosMesaj = `"${esc(aramaKod)}" için demeç bulunamadı.`;
   } else {
-    // Tümü: son 10 röportaj · tek kanal: son 5 (sayfa taze ve kısa kalsın)
-    const lim = secili==="all" ? 10 : 5;
+    // Tümü: son 15 röportaj · tek kanal: son 5 (sayfa taze ve kısa kalsın)
+    const lim = secili==="all" ? 15 : 5;
     q = `roportaj?select=${SEL}&order=guncelleme.desc&limit=${lim}`;
     if(secili!=="all") q += `&kanal=eq.${encodeURIComponent(secili)}`;
     baslik = secili==="all" ? "Son TV Demeçleri" : `${AD[secili]} — TV Demeçleri`;
@@ -605,7 +605,7 @@ function dergiCardHTML(r){
 }
 async function loadDergi(){
   // Arama varsa o koda ait dergi yayınları; yoksa son 5
-  let q = `dergi?select=${DERGI_SEL}&order=guncelleme.desc&limit=5`;
+  let q = `dergi?select=${DERGI_SEL}&order=guncelleme.desc&limit=10`;
   if(aramaKod) q = `dergi?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${DERGI_SEL}&order=guncelleme.desc&limit=5`;
   const rows = await sb(q);
   const box = document.getElementById("dergiFeed");
