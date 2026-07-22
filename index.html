@@ -121,6 +121,12 @@
   .area-demec{grid-area:demec}
   .area-dergi{grid-area:dergi}
   .area-ytv{grid-area:ytv}
+  /* .sag = TV demeçleri + YouTube sarmalayıcısı. Dar ekranda YOK SAYILIR
+     (display:contents → çocuklar kendi grid alanlarında); geniş ekranda gerçek
+     sütun olur — YouTube, TV akışının HEMEN altında akar. Neden: ayrı grid
+     satırları kullanınca dergi sütununun yüksekliği ortak satırı şişirip
+     YouTube'u yüzlerce piksel aşağı itiyordu (2026-07-22). */
+  .sag{display:contents}
 
   /* Video alanı */
   #videos{display:grid;gap:4px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
@@ -166,11 +172,12 @@
     /* Dashboard: sol sütun = videolar (üst) + dergi (alt), sağ sütun = demeçler */
     main{max-width:2100px;padding:18px 30px 40px;gap:0 30px;align-items:start;
       grid-template-columns:minmax(0,11fr) minmax(0,9fr);
-      grid-template-areas:"videos demec" "dergi demec" "dergi ytv"}   /* YouTube: sağ altta, TV demeçlerinin altında */
+      grid-template-areas:"videos sag" "dergi sag"}   /* sağ sütun: TV demeçleri + hemen altında YouTube */
+    .sag{display:block;grid-area:sag;min-width:0}
     .area-demec .feedhead{margin-top:0}
     .area-demec h2{margin-top:0}
     /* Yayınları gizle: demeçler sola, dergi sağa (yan yana) */
-    body.novideo main{grid-template-columns:1fr 1fr;grid-template-areas:"demec dergi" "ytv dergi"}   /* YouTube: sol altta, TV demeçlerinin altında */
+    body.novideo main{grid-template-columns:1fr 1fr;grid-template-areas:"sag dergi"}   /* sol sütun: TV + altında YouTube, sağ: dergi */
     /* İki sütun tepede yan yana → dergi başlığı da TV başlığıyla aynı hizada başlasın
        (normal dashboard'da dergi videoların altında olduğu için 26px üst boşluk korunur) */
     body.novideo .area-dergi .feedhead{margin-top:0}
@@ -367,6 +374,7 @@
 
 <main>
   <div class="area-videos"><div id="videos"></div></div>
+  <div class="sag">
   <div class="area-demec">
     <div id="paylasilanWrap" hidden>
       <div class="prozet">📌 Bu demeç sana paylaşıldı</div>
@@ -377,19 +385,21 @@
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="feed"></div>
   </div>
-  <div class="area-dergi">
-    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2><span class="cnt" id="dergiCnt"></span>
-      <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
-             maxlength="12" placeholder="Ara (örn. THYAO)"></div>
-    <div id="dergiFeed"></div>
-  </div>
-  <!-- YouTube bölümü: kendi grid alanı — mobilde derginin altında, geniş ekranda
-       TV demeçlerinin altında (yayınlar açıkken sağ, kapalıyken sol sütun) -->
+  <!-- YouTube bölümü: TV akışıyla AYNI sütun sarmalayıcısında (.sag) — geniş ekranda
+       demeçlerin hemen altında akar (grid satır bağlaşması yok); dar ekranda
+       display:contents ile sarmalayıcı yok sayılır, bölümler kendi grid alanlarında -->
   <div class="area-ytv">
     <div class="feedhead ytvhead" id="ytvHead" hidden><h2>YouTube'da</h2><span class="cnt" id="ytvCnt"></span>
       <input id="searchYtv" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="ytvFeed"></div>
+  </div>
+  </div><!-- /.sag -->
+  <div class="area-dergi">
+    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2><span class="cnt" id="dergiCnt"></span>
+      <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
+             maxlength="12" placeholder="Ara (örn. THYAO)"></div>
+    <div id="dergiFeed"></div>
   </div>
 </main>
 <footer><div class="fcontact"><a class="xfoot" href="https://x.com/ceoburada" target="_blank" rel="noopener" aria-label="X'te takip et (@CEOBurada)"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a><a href="mailto:info@ceoburada.com">info@ceoburada.com</a></div><div class="flegal">Video yayınları, ilgili kanalların resmî YouTube canlı yayınlarından gömülerek (embed) gösterilir; tüm telif hakları ilgili yayıncılara aittir.<br>CEOBurada, ücretsiz bir bilgilendirme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.</div></footer>
