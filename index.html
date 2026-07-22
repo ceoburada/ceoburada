@@ -125,7 +125,6 @@
   .area-dergi{grid-area:dergi}
   .area-ytv{grid-area:ytv}
   .area-sunum{grid-area:sunum}
-  .sol{display:contents}   /* dar ekranda yok sayılır; geniş ekranda sütun olur */
   /* .sag = TV demeçleri + YouTube sarmalayıcısı. Dar ekranda YOK SAYILIR
      (display:contents → çocuklar kendi grid alanlarında); geniş ekranda gerçek
      sütun olur — YouTube, TV akışının HEMEN altında akar. Neden: ayrı grid
@@ -177,15 +176,14 @@
     /* Dashboard: sol sütun = videolar (üst) + dergi (alt), sağ sütun = demeçler */
     main{max-width:2100px;padding:18px 30px 40px;gap:0 30px;align-items:start;
       grid-template-columns:minmax(0,11fr) minmax(0,9fr);
-      grid-template-areas:"videos sag" "sol sag"}   /* sol: videolar + dergi/sunumlar · sağ: TV + YouTube */
+      grid-template-areas:"videos sag" "dergi sag"}   /* sol: videolar + dergi · sağ: TV + YouTube + sunumlar */
     .sag{display:block;grid-area:sag;min-width:0}
-    .sol{display:block;grid-area:sol;min-width:0}
     /* Sunum–dergi arası, YouTube'un TV demeçlerine olan mesafesiyle AYNI olsun
        (ikisi de temel .feedhead margin'i = 26px; ayrı kural gereksiz). */
     .area-demec .feedhead{margin-top:0}
     .area-demec h2{margin-top:0}
     /* Yayınları gizle: demeçler sola, dergi sağa (yan yana) */
-    body.novideo main{grid-template-columns:1fr 1fr;grid-template-areas:"sag sol"}   /* sol: TV + YouTube · sağ: dergi + sunumlar */
+    body.novideo main{grid-template-columns:1fr 1fr;grid-template-areas:"sag dergi"}   /* sol: TV + YouTube + sunumlar · sağ: dergi */
     /* İki sütun tepede yan yana → dergi başlığı da TV başlığıyla aynı hizada başlasın
        (normal dashboard'da dergi videoların altında olduğu için 26px üst boşluk korunur) */
     body.novideo .area-dergi .feedhead{margin-top:0}
@@ -280,11 +278,11 @@
     border:1px solid var(--line);border-radius:5px;padding:1px 5px;white-space:nowrap}
   /* İkon C: yatay belge + "PDF" yazısı — simge tek başına yeterince belli
      olmuyordu, yazı tereddüdü kaldırıyor. */
-  .sn a.pdf{grid-area:pdf;width:90px;height:48px;border-radius:9px;display:flex;gap:7px;
+  .sn a.pdf{grid-area:pdf;width:84px;height:44px;border-radius:9px;display:flex;gap:7px;
     align-items:center;justify-content:center;border:1px solid var(--line);
     background:#0e1420;color:var(--tx3);opacity:.55;transition:.18s;text-decoration:none}
-  .sn a.pdf svg{width:22px;height:22px;flex:0 0 auto}
-  .sn a.pdf .pdfyazi{font-weight:800;font-size:13px;letter-spacing:.4px}
+  .sn a.pdf svg{width:20px;height:20px;flex:0 0 auto}
+  .sn a.pdf .pdfyazi{font-weight:800;font-size:12.2px;letter-spacing:.4px}
   @media (hover:hover){
     .sn a.pdf:hover{opacity:1;color:var(--sunum);border-color:var(--sunum);
       background:rgba(127,156,196,.12);box-shadow:0 0 0 3px rgba(127,156,196,.13)}
@@ -460,22 +458,19 @@
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="ytvFeed"></div>
   </div>
+  <!-- Sunumlar YouTube'un HEMEN ALTINDA, aynı sütunda (2026-07-22) -->
+  <div class="area-sunum">
+    <div class="feedhead sunhead" id="sunHead" hidden><h2>Yatırımcı Sunumları</h2><span class="cnt" id="sunCnt"></span>
+      <input id="searchSunum" class="search" type="search" inputmode="text" autocomplete="off"
+             maxlength="12" placeholder="Ara (örn. THYAO)"></div>
+    <div id="sunFeed"></div>
+  </div>
   </div><!-- /.sag -->
-  <!-- .sol = dergi + sunumlar sütunu (.sag ile aynı desen: dar ekranda
-       display:contents ile yok sayılır, geniş ekranda gerçek sütun olur) -->
-  <div class="sol">
-    <div class="area-dergi">
-      <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2><span class="cnt" id="dergiCnt"></span>
-        <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
-               maxlength="12" placeholder="Ara (örn. THYAO)"></div>
-      <div id="dergiFeed"></div>
-    </div>
-    <div class="area-sunum">
-      <div class="feedhead sunhead" id="sunHead" hidden><h2>Yatırımcı Sunumları</h2><span class="cnt" id="sunCnt"></span>
-        <input id="searchSunum" class="search" type="search" inputmode="text" autocomplete="off"
-               maxlength="12" placeholder="Ara (örn. THYAO)"></div>
-      <div id="sunFeed"></div>
-    </div>
+  <div class="area-dergi">
+    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2><span class="cnt" id="dergiCnt"></span>
+      <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
+             maxlength="12" placeholder="Ara (örn. THYAO)"></div>
+    <div id="dergiFeed"></div>
   </div>
 </main>
 <footer><div class="fcontact"><a class="xfoot" href="https://x.com/ceoburada" target="_blank" rel="noopener" aria-label="X'te takip et (@CEOBurada)"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a><a href="mailto:info@ceoburada.com">info@ceoburada.com</a></div><div class="flegal">Video yayınları, ilgili kanalların resmî YouTube canlı yayınlarından gömülerek (embed) gösterilir; tüm telif hakları ilgili yayıncılara aittir.<br>CEOBurada, ücretsiz bir bilgilendirme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.</div></footer>
