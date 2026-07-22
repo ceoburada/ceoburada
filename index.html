@@ -696,18 +696,23 @@ async function ac(el, open){
 }
 let sonFeedImza = "";
 const SEL = "grup,kod,etiket,kanal,gun,ilk_saat,manset,cumle_sayisi,token";
+// Sıralama YAYIN anına göre (gun + ilk_saat), 'guncelleme'ye göre DEĞİL:
+// guncelleme her düzeltmede bugüne çekildiği için düzeltilen eski bir röportaj
+// listenin tepesine zıplıyordu (2026-07-22).
+const SIRA = "gun.desc,ilk_saat.desc";
+
 async function loadFeed(){
   let q, baslik, bosMesaj, lim;
   if(aramaKod){
     // Şirket kodu araması: o koda ait son 5 röportaj (kanal filtresini ezer)
     lim = 5;
-    q = `roportaj?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${SEL}&order=guncelleme.desc&limit=${lim}`;
+    q = `roportaj?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${SEL}&order=${SIRA}&limit=${lim}`;
     baslik = secili==="all" ? "Son TV Demeçleri" : `${AD[secili]} — TV Demeçleri`;   // arama başlığı değiştirmez
     bosMesaj = `"${esc(aramaKod)}" için demeç bulunamadı.`;
   } else {
     // Tümü: son 15 röportaj · tek kanal: son 5 (sayfa taze ve kısa kalsın)
     lim = secili==="all" ? 15 : 5;
-    q = `roportaj?select=${SEL}&order=guncelleme.desc&limit=${lim}`;
+    q = `roportaj?select=${SEL}&order=${SIRA}&limit=${lim}`;
     if(secili!=="all") q += `&kanal=eq.${encodeURIComponent(secili)}`;
     baslik = secili==="all" ? "Son TV Demeçleri" : `${AD[secili]} — TV Demeçleri`;
     bosMesaj = "Henüz onaylı demeç yok. Yeni açıklamalar geldikçe burada görünecek.";
