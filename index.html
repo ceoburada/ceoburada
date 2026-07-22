@@ -585,8 +585,9 @@ function duzenAyarla(){
   if(!S.demec || !S.dergi || !S.ytv || !S.sunum) return;
   let A, B;
   if(!genis)            { A = ["demec","dergi","ytv","sunum"]; B = []; }   // dikey: sunum en altta
-  else if(!videoGizli)  { A = ["dergi"];        B = ["demec","ytv","sunum"]; }
-  else                  { A = ["demec","ytv"];  B = ["dergi","sunum"]; }
+  // Geniş ekranda sunum HER İKİ durumda da derginin hemen altında durur.
+  else if(!videoGizli)  { A = ["dergi","sunum"]; B = ["demec","ytv"]; }
+  else                  { A = ["demec","ytv"];   B = ["dergi","sunum"]; }
   const imza = A.join()+"|"+B.join();
   if(imza === sonDuzen) return;      // gereksiz DOM taşıma yok
   sonDuzen = imza;
