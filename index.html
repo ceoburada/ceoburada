@@ -258,7 +258,11 @@
     background:var(--card);border:1px solid var(--line);border-left:3px solid var(--sunum);
     border-radius:10px;padding:9px 13px;margin-bottom:7px;color:var(--tx);text-decoration:none}
   @media (hover:hover){ a.sn:hover{background:#1b2433;border-color:#33405a} }
-  .sn .kod{font-weight:800;font-size:13.5px;letter-spacing:.2px}
+  /* Kod sütunu SABİT genişlik → ünvanlar hep aynı hizadan başlar. Her satır ayrı
+     grid olduğu için otomatik genişlik satır satır değişiyordu; üstelik orantılı
+     yazı tipinde 5 harfli kodlar bile birbiriyle hizasızdı (TTRAK 46.8px vs
+     SKYMD 50.4px, ölçüldü 2026-07-22). 6.3ch ≈ en geniş 5 harfli kodu kapsar. */
+  .sn .kod{font-weight:800;font-size:13.5px;letter-spacing:.2px;min-width:6.3ch}
   .sn .unv{color:var(--tx2);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sn .don{color:var(--sunum);font-size:11.5px;font-weight:700;white-space:nowrap;
     font-variant-numeric:tabular-nums}
