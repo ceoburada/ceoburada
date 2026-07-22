@@ -232,8 +232,6 @@
   .yv .kgov{display:block;min-width:0}
   .yv .ust{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .yv .who{font-weight:800;font-size:14px}
-  .yv .ytvbadge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;
-    border:1px solid #382427;color:var(--ytv-s)}
   .yv .cumle{display:block;margin:8px 0 0;font-size:15.5px;line-height:1.5}
   .yv .cumle .kanalad{font-weight:700}
   .yv .vbaslik{display:block;margin:7px 0 0;color:var(--tx2);font-size:13.5px;line-height:1.45}
@@ -692,7 +690,7 @@ function ytvCardHTML(r){
   // Kapak SAĞDA; tarih üst satırdan alınıp başlığın soluna kondu.
   return `<div class="yv">
     <span class="kgov">
-      <span class="ust"><span class="who">${kim}</span><span class="ytvbadge">YouTube</span></span>
+      <span class="ust"><span class="who">${kim}</span></span>
       <span class="cumle">${cumle}</span>
       <span class="vbaslik">${t?`<span class="vtarih">${t}</span>`:""}${esc(r.video_baslik||"")}</span>
     </span>
