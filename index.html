@@ -108,7 +108,7 @@
   /* Videolar gizliyken dar/dikey düzende de videos satırını grid'den kaldır
      (aksi halde boş 'videos' satırı ~112px fantom boşluk bırakıyor; ≥1500px'te
      alttaki media query iki sütuna çevirir) */
-  body.novideo main{grid-template-areas:"demec" "dergi" "ytv"}
+  body.novideo main{grid-template-areas:"demec" "dergi" "ytv" "sunum"}
   /* Hisse arama kutusu (TV + dergi başlıklarında ikiz senkron; TV+dergi+videoları filtreler) */
   .search{margin-left:auto;border:1px solid var(--line);border-radius:999px;
     color:var(--tx);font-size:13px;padding:6px 14px 6px 32px;outline:none;width:200px;max-width:56vw;text-transform:uppercase;
@@ -119,11 +119,13 @@
 
   main{max-width:1200px;margin:0 auto;padding:18px 20px 60px;
     display:grid;grid-template-columns:minmax(0,1fr);align-content:start;
-    grid-template-areas:"videos" "demec" "dergi" "ytv"}
+    grid-template-areas:"videos" "demec" "dergi" "ytv" "sunum"}   /* dikeyde sunumlar EN ALTTA */
   .area-videos{grid-area:videos}
   .area-demec{grid-area:demec}
   .area-dergi{grid-area:dergi}
   .area-ytv{grid-area:ytv}
+  .area-sunum{grid-area:sunum}
+  .sol{display:contents}   /* dar ekranda yok sayılır; geniş ekranda sütun olur */
   /* .sag = TV demeçleri + YouTube sarmalayıcısı. Dar ekranda YOK SAYILIR
      (display:contents → çocuklar kendi grid alanlarında); geniş ekranda gerçek
      sütun olur — YouTube, TV akışının HEMEN altında akar. Neden: ayrı grid
@@ -175,12 +177,15 @@
     /* Dashboard: sol sütun = videolar (üst) + dergi (alt), sağ sütun = demeçler */
     main{max-width:2100px;padding:18px 30px 40px;gap:0 30px;align-items:start;
       grid-template-columns:minmax(0,11fr) minmax(0,9fr);
-      grid-template-areas:"videos sag" "dergi sag"}   /* sağ sütun: TV demeçleri + hemen altında YouTube */
+      grid-template-areas:"videos sag" "sol sag"}   /* sol: videolar + dergi/sunumlar · sağ: TV + YouTube */
     .sag{display:block;grid-area:sag;min-width:0}
+    .sol{display:block;grid-area:sol;min-width:0}
+    /* Sunumlar, derginin listesinden net ayrılsın (aynı sütunda ardışık iki bölüm) */
+    .area-sunum .feedhead{margin-top:38px}
     .area-demec .feedhead{margin-top:0}
     .area-demec h2{margin-top:0}
     /* Yayınları gizle: demeçler sola, dergi sağa (yan yana) */
-    body.novideo main{grid-template-columns:1fr 1fr;grid-template-areas:"sag dergi"}   /* sol sütun: TV + altında YouTube, sağ: dergi */
+    body.novideo main{grid-template-columns:1fr 1fr;grid-template-areas:"sag sol"}   /* sol: TV + YouTube · sağ: dergi + sunumlar */
     /* İki sütun tepede yan yana → dergi başlığı da TV başlığıyla aynı hizada başlasın
        (normal dashboard'da dergi videoların altında olduğu için 26px üst boşluk korunur) */
     body.novideo .area-dergi .feedhead{margin-top:0}
@@ -190,7 +195,8 @@
   .feedhead{display:flex;align-items:baseline;gap:10px;margin:26px 2px 12px}
   /* Dar/dikey (stacked) düzende dergi bölümünü TV'den bir satır kadar daha ayır —
      mobil + dikey PC'de iki ayrı bölüm olduğu net anlaşılsın (≥1500 2-sütunda dokunma) */
-  @media(max-width:1499px){ .area-dergi .feedhead, .area-ytv .feedhead{margin-top:46px} }
+  @media(max-width:1499px){
+    .area-dergi .feedhead, .area-ytv .feedhead, .area-sunum .feedhead{margin-top:46px} }
   .feedhead h2{margin:0;font-size:18px;letter-spacing:.2px}
   /* Başlık başında yanıp sönen kırık-beyaz nokta (markadaki kırmızının beyaz versiyonu) */
   .feedhead h2::before{content:"";display:inline-block;width:.55em;height:.55em;border-radius:50%;
@@ -256,7 +262,8 @@
   .sn .unv{color:var(--tx2);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sn .don{color:var(--sunum);font-size:11.5px;font-weight:700;white-space:nowrap;
     font-variant-numeric:tabular-nums}
-  .sn .kap{color:var(--tx3);font-size:10.5px;font-weight:700;margin-left:5px}
+  .sn .kap{color:var(--tx3);font-size:10.5px;font-weight:700;margin-left:7px;
+    border:1px solid var(--line);border-radius:5px;padding:1px 5px;white-space:nowrap}
   @media(max-width:520px){
     a.sn{grid-template-columns:auto minmax(0,1fr);row-gap:2px}
     .sn .don{grid-column:1/-1}
@@ -416,17 +423,21 @@
     <div id="ytvFeed"></div>
   </div>
   </div><!-- /.sag -->
-  <div class="area-dergi">
-    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2><span class="cnt" id="dergiCnt"></span>
-      <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
-             maxlength="12" placeholder="Ara (örn. THYAO)"></div>
-    <div id="dergiFeed"></div>
-    <!-- Yatırımcı sunumları: derginin HEMEN ALTINDA (aynı sütun; dar ekranda
-         en altta kalır). Tablo boşken başlık gizli. -->
-    <div class="feedhead sunhead" id="sunHead" hidden><h2>Yatırımcı Sunumları</h2><span class="cnt" id="sunCnt"></span>
-      <input id="searchSunum" class="search" type="search" inputmode="text" autocomplete="off"
-             maxlength="12" placeholder="Ara (örn. THYAO)"></div>
-    <div id="sunFeed"></div>
+  <!-- .sol = dergi + sunumlar sütunu (.sag ile aynı desen: dar ekranda
+       display:contents ile yok sayılır, geniş ekranda gerçek sütun olur) -->
+  <div class="sol">
+    <div class="area-dergi">
+      <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2><span class="cnt" id="dergiCnt"></span>
+        <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
+               maxlength="12" placeholder="Ara (örn. THYAO)"></div>
+      <div id="dergiFeed"></div>
+    </div>
+    <div class="area-sunum">
+      <div class="feedhead sunhead" id="sunHead" hidden><h2>Yatırımcı Sunumları</h2><span class="cnt" id="sunCnt"></span>
+        <input id="searchSunum" class="search" type="search" inputmode="text" autocomplete="off"
+               maxlength="12" placeholder="Ara (örn. THYAO)"></div>
+      <div id="sunFeed"></div>
+    </div>
   </div>
 </main>
 <footer><div class="fcontact"><a class="xfoot" href="https://x.com/ceoburada" target="_blank" rel="noopener" aria-label="X'te takip et (@CEOBurada)"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a><a href="mailto:info@ceoburada.com">info@ceoburada.com</a></div><div class="flegal">Video yayınları, ilgili kanalların resmî YouTube canlı yayınlarından gömülerek (embed) gösterilir; tüm telif hakları ilgili yayıncılara aittir.<br>CEOBurada, ücretsiz bir bilgilendirme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.</div></footer>
