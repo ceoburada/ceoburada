@@ -262,23 +262,25 @@
   /* Satır: solda metin (1. satır kod, 2. satır ünvan + hemen yanında dönem),
      sağda PDF simgesi — YouTube kapağının muadili; soluk durur, üzerine
      gelince parlar. Tıklanabilir tek öğe SİMGE (satırın kendisi değil). */
-  .sn{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
+  /* PC: dönem ve PDF ikonu İKİ SATIRA DA yayılır → ikisi de dikey ortalanır.
+     Mobil: dönem 2. satıra, ünvanın yanına iner (aşağıdaki media query). */
+  .sn{display:grid;gap:3px 12px;align-items:center;
+    grid-template-columns:minmax(0,1fr) auto auto;
+    grid-template-areas:"kod don pdf"
+                        "unv don pdf";
     background:var(--card);border:1px solid var(--line);border-left:3px solid var(--sunum);
     border-radius:10px;padding:9px 13px;color:var(--tx);
     user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-  .sn .sngov{min-width:0}
-  .sn .kod{font-weight:800;font-size:13.5px;letter-spacing:.2px}
-  .sn .snalt{display:flex;align-items:baseline;gap:9px;margin-top:2px;min-width:0}
+  .sn .kod{grid-area:kod;align-self:end;font-weight:800;font-size:13.5px;letter-spacing:.2px}
+  .sn .unvwrap{grid-area:unv;align-self:start;display:flex;align-items:baseline;gap:9px;min-width:0}
   .sn .unv{color:var(--tx2);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;
     white-space:nowrap;flex:0 1 auto;min-width:0}
-  /* Sıra: ünvan → KAP rozeti … dönem (sağa yaslı, PDF ikonuna komşu). */
-  .sn .don{margin-left:auto;color:var(--sunum);font-size:11.5px;font-weight:700;
-    white-space:nowrap;flex:0 0 auto}
+  .sn .don{grid-area:don;color:var(--sunum);font-size:11.5px;font-weight:700;white-space:nowrap}
   .sn .kap{color:var(--tx3);font-size:10.5px;font-weight:700;flex:0 0 auto;
     border:1px solid var(--line);border-radius:5px;padding:1px 5px;white-space:nowrap}
   /* İkon C: yatay belge + "PDF" yazısı — simge tek başına yeterince belli
      olmuyordu, yazı tereddüdü kaldırıyor. */
-  .sn a.pdf{flex:0 0 auto;width:90px;height:48px;border-radius:9px;display:flex;gap:7px;
+  .sn a.pdf{grid-area:pdf;width:90px;height:48px;border-radius:9px;display:flex;gap:7px;
     align-items:center;justify-content:center;border:1px solid var(--line);
     background:#0e1420;color:var(--tx3);opacity:.55;transition:.18s;text-decoration:none}
   .sn a.pdf svg{width:22px;height:22px;flex:0 0 auto}
@@ -288,6 +290,12 @@
       background:rgba(127,156,196,.12);box-shadow:0 0 0 3px rgba(127,156,196,.13)}
   }
   .sn a.pdf:focus-visible{opacity:1;color:var(--sunum);border-color:var(--sunum);outline:none}
+  /* Mobil: dönem dikey ortalanmaz, ünvanla AYNI SATIRDA (2. satır) kalır. */
+  @media(max-width:600px){
+    .sn{grid-template-areas:"kod kod pdf"
+                            "unv don pdf"}
+    .sn .don{align-self:start}
+  }
   .rp .time{color:var(--tx3);font-size:12px}
   .rp .meta{position:absolute;left:15px;bottom:10px;display:flex;align-items:center;gap:6px}
   .rp .cnt{color:var(--tx3);font-size:12px}
@@ -791,14 +799,9 @@ function sunCardHTML(r){
   // Yalnız DÖNEM gösterilir (şirketin kendi etiketiyle); yayın tarihi sıralamada
   // kullanılır ama satırda görünmez.
   return `<div class="sn">
-    <div class="sngov">
-      <div class="kod">${esc(r.kod)}</div>
-      <div class="snalt">
-        <span class="unv">${esc(r.unvan||"")}</span>
-        ${r.kaynak==="KAP"?'<span class="kap">KAP</span>':""}
-        <span class="don">${esc(r.donem||"")}</span>
-      </div>
-    </div>
+    <span class="kod">${esc(r.kod)}</span>
+    <span class="unvwrap"><span class="unv">${esc(r.unvan||"")}</span>${r.kaynak==="KAP"?'<span class="kap">KAP</span>':""}</span>
+    <span class="don">${esc(r.donem||"")}</span>
     <a class="pdf" href="${esc(r.pdf_url)}" target="_blank" rel="noopener"
        title="Sunuma git" aria-label="${esc(r.kod)} sunumuna git">${PDFICO}</a>
   </div>`;
