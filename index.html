@@ -118,19 +118,16 @@
   .search::placeholder{color:var(--tx3);text-transform:none}
 
   main{max-width:1200px;margin:0 auto;padding:18px 20px 60px;
-    display:grid;grid-template-columns:minmax(0,1fr);align-content:start;
-    grid-template-areas:"videos" "demec" "dergi" "ytv" "sunum"}   /* dikeyde sunumlar EN ALTTA */
-  .area-videos{grid-area:videos}
-  .area-demec{grid-area:demec}
-  .area-dergi{grid-area:dergi}
-  .area-ytv{grid-area:ytv}
-  .area-sunum{grid-area:sunum}
-  /* .sag = TV demeçleri + YouTube sarmalayıcısı. Dar ekranda YOK SAYILIR
-     (display:contents → çocuklar kendi grid alanlarında); geniş ekranda gerçek
-     sütun olur — YouTube, TV akışının HEMEN altında akar. Neden: ayrı grid
-     satırları kullanınca dergi sütununun yüksekliği ortak satırı şişirip
-     YouTube'u yüzlerce piksel aşağı itiyordu (2026-07-22). */
-  .sag{display:contents}
+    display:grid;grid-template-columns:minmax(0,1fr);align-content:start}
+  /* İKİ BAĞIMSIZ SÜTUN (#kolA / #kolB) — grid ALANLARI kullanılmıyor.
+     Neden: (1) sunum bölümü yayın durumuna göre grup değiştiriyor (açıkken
+     TV+YouTube ile sağda, kapalıyken dergi ile sağda) — tek bir grid haritası
+     bunu veremez; (2) grid'de satır paylaşan öğeler birbirini itiyordu: sağdaki
+     TV akordiyonu açılınca soldaki dergi aşağı zıplıyordu. Blok akışlı iki
+     sütunda böyle bir bağlaşma yok. Bölümlerin hangi sütuna gireceğini
+     duzenAyarla() belirler; VİDEO ALANI asla taşınmaz (taşınırsa iframe'ler
+     baştan yüklenir). */
+  #kolA,#kolB{min-width:0}
 
   /* Video alanı */
   #videos{display:grid;gap:4px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
@@ -173,20 +170,17 @@
      Tam genişlik kullanılır (kenarlarda ölü boşluk kalmasın), videolar büyür. */
   @media(min-width:1500px){
     .bar,.tabs{max-width:2100px;padding-left:30px;padding-right:30px}
-    /* Dashboard: sol sütun = videolar (üst) + dergi (alt), sağ sütun = demeçler */
+    /* Yayınlar AÇIK : sol = videolar + dergi · sağ = TV + YouTube + sunumlar
+       Yayınlar KAPALI: sol = TV + YouTube    · sağ = dergi + sunumlar
+       (bölümleri sütunlara duzenAyarla() dağıtır) */
     main{max-width:2100px;padding:18px 30px 40px;gap:0 30px;align-items:start;
-      grid-template-columns:minmax(0,11fr) minmax(0,9fr);
-      grid-template-areas:"videos sag" "dergi sag"}   /* sol: videolar + dergi · sağ: TV + YouTube + sunumlar */
-    .sag{display:block;grid-area:sag;min-width:0}
-    /* Sunum–dergi arası, YouTube'un TV demeçlerine olan mesafesiyle AYNI olsun
-       (ikisi de temel .feedhead margin'i = 26px; ayrı kural gereksiz). */
-    .area-demec .feedhead{margin-top:0}
-    .area-demec h2{margin-top:0}
-    /* Yayınları gizle: demeçler sola, dergi sağa (yan yana) */
-    body.novideo main{grid-template-columns:1fr 1fr;grid-template-areas:"sag dergi"}   /* sol: TV + YouTube + sunumlar · sağ: dergi */
-    /* İki sütun tepede yan yana → dergi başlığı da TV başlığıyla aynı hizada başlasın
-       (normal dashboard'da dergi videoların altında olduğu için 26px üst boşluk korunur) */
-    body.novideo .area-dergi .feedhead{margin-top:0}
+      grid-template-columns:minmax(0,11fr) minmax(0,9fr)}
+    body.novideo main{grid-template-columns:1fr 1fr}
+    /* Her sütunun İLK bölümü tepeden başlasın (üstünde bölüm yok, boşluk gereksiz).
+       kolA'da video alanı her zaman ilk çocuktur; gizliyken 2. çocuk başa geçer. */
+    #kolB > :first-child .feedhead{margin-top:0}
+    #kolA > .area-videos + * .feedhead{margin-top:0}
+    body:not(.novideo) #kolA > .area-videos + * .feedhead{margin-top:26px}
   }
 
   /* Demeç akışı */
@@ -288,12 +282,8 @@
       background:rgba(127,156,196,.12);box-shadow:0 0 0 3px rgba(127,156,196,.13)}
   }
   .sn a.pdf:focus-visible{opacity:1;color:var(--sunum);border-color:var(--sunum);outline:none}
-  /* Mobil: dönem dikey ortalanmaz, ünvanla AYNI SATIRDA (2. satır) kalır. */
-  @media(max-width:600px){
-    .sn{grid-template-areas:"kod kod pdf"
-                            "unv don pdf"}
-    .sn .don{align-self:start}
-  }
+  /* Mobilde de dönem PC'deki gibi iki satıra yayılır ve dikey ortalanır —
+     ayrı bir mobil haritası YOK (kullanıcı kararı 2026-07-22). */
   .rp .time{color:var(--tx3);font-size:12px}
   .rp .meta{position:absolute;left:15px;bottom:10px;display:flex;align-items:center;gap:6px}
   .rp .cnt{color:var(--tx3);font-size:12px}
@@ -437,8 +427,10 @@
 </header>
 
 <main>
+  <!-- Bölümler duzenAyarla() ile #kolA / #kolB arasında dağıtılır.
+       .area-videos DAİMA kolA'nın ilk çocuğu kalır (taşınırsa iframe'ler yeniden yüklenir). -->
+  <div id="kolA">
   <div class="area-videos"><div id="videos"></div></div>
-  <div class="sag">
   <div class="area-demec">
     <div id="paylasilanWrap" hidden>
       <div class="prozet">📌 Bu demeç sana paylaşıldı</div>
@@ -449,29 +441,26 @@
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="feed"></div>
   </div>
-  <!-- YouTube bölümü: TV akışıyla AYNI sütun sarmalayıcısında (.sag) — geniş ekranda
-       demeçlerin hemen altında akar (grid satır bağlaşması yok); dar ekranda
-       display:contents ile sarmalayıcı yok sayılır, bölümler kendi grid alanlarında -->
   <div class="area-ytv">
     <div class="feedhead ytvhead" id="ytvHead" hidden><h2>YouTube'da</h2><span class="cnt" id="ytvCnt"></span>
       <input id="searchYtv" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="ytvFeed"></div>
   </div>
-  <!-- Sunumlar YouTube'un HEMEN ALTINDA, aynı sütunda (2026-07-22) -->
-  <div class="area-sunum">
-    <div class="feedhead sunhead" id="sunHead" hidden><h2>Yatırımcı Sunumları</h2><span class="cnt" id="sunCnt"></span>
-      <input id="searchSunum" class="search" type="search" inputmode="text" autocomplete="off"
-             maxlength="12" placeholder="Ara (örn. THYAO)"></div>
-    <div id="sunFeed"></div>
-  </div>
-  </div><!-- /.sag -->
   <div class="area-dergi">
     <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2><span class="cnt" id="dergiCnt"></span>
       <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="dergiFeed"></div>
   </div>
+  <div class="area-sunum">
+    <div class="feedhead sunhead" id="sunHead" hidden><h2>Yatırımcı Sunumları</h2><span class="cnt" id="sunCnt"></span>
+      <input id="searchSunum" class="search" type="search" inputmode="text" autocomplete="off"
+             maxlength="12" placeholder="Ara (örn. THYAO)"></div>
+    <div id="sunFeed"></div>
+  </div>
+  </div><!-- /#kolA -->
+  <div id="kolB"></div>
 </main>
 <footer><div class="fcontact"><a class="xfoot" href="https://x.com/ceoburada" target="_blank" rel="noopener" aria-label="X'te takip et (@CEOBurada)"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a><a href="mailto:info@ceoburada.com">info@ceoburada.com</a></div><div class="flegal">Video yayınları, ilgili kanalların resmî YouTube canlı yayınlarından gömülerek (embed) gösterilir; tüm telif hakları ilgili yayıncılara aittir.<br>CEOBurada, ücretsiz bir bilgilendirme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.</div></footer>
 
@@ -572,11 +561,41 @@ let paylasilanToken = null;   // ?r=<token> → paylaşım linkiyle gelen demeç
   if(r){ videoGizli = true; paylasilanToken = r; }
   if(q.get("b")==="1" || r){ try{ history.replaceState(null,"",location.pathname); }catch(_){} }
 })();
+/* ---- Sütun düzeni ----
+   Bölümleri #kolA / #kolB arasında dağıtır. Grid alanları yerine gerçek iki
+   sütun kullanılıyor; böylece (a) sunumlar yayın durumuna göre grup
+   değiştirebiliyor, (b) bir sütundaki akordiyon açılınca diğer sütun zıplamıyor.
+   .area-videos ASLA taşınmaz — DOM'da yeri değişirse iframe'ler baştan yüklenir. */
+let sonDuzen = "";
+function duzenAyarla(){
+  const kolA = document.getElementById("kolA"), kolB = document.getElementById("kolB");
+  if(!kolA || !kolB) return;
+  const genis = window.matchMedia("(min-width:1500px)").matches;
+  const S = {
+    demec: document.querySelector(".area-demec"),
+    dergi: document.querySelector(".area-dergi"),
+    ytv:   document.querySelector(".area-ytv"),
+    sunum: document.querySelector(".area-sunum")
+  };
+  if(!S.demec || !S.dergi || !S.ytv || !S.sunum) return;
+  let A, B;
+  if(!genis)            { A = ["demec","dergi","ytv","sunum"]; B = []; }   // dikey: sunum en altta
+  else if(!videoGizli)  { A = ["dergi"];        B = ["demec","ytv","sunum"]; }
+  else                  { A = ["demec","ytv"];  B = ["dergi","sunum"]; }
+  const imza = A.join()+"|"+B.join();
+  if(imza === sonDuzen) return;      // gereksiz DOM taşıma yok
+  sonDuzen = imza;
+  A.forEach(k => kolA.appendChild(S[k]));   // videos zaten kolA'nın ilkinde, dokunulmaz
+  B.forEach(k => kolB.appendChild(S[k]));
+}
+window.addEventListener("resize", duzenAyarla);
+
 function applyVideoGizli(){
   document.body.classList.toggle("novideo", videoGizli);
   const btn = document.getElementById("vidToggle");
   btn.textContent = videoGizli ? "Canlı Yayınları Aç" : "Canlı Yayınları Kapat";
   btn.classList.toggle("on", videoGizli);
+  duzenAyarla();
   // İlk açılışta canlı ID'ler henüz yüklenmediyse çizimi loadCanli yapar
   // ("yayın yok" kartlarının anlık parlamasını önler)
   if(videolarCizildi || videoGizli) renderVideos();
@@ -769,7 +788,7 @@ async function loadYoutube(){
   // Tablo henüz yokken sb() [] döner → bölüm gizli kalır (güvenli açılış).
   // Arama varsa o koda ait videolar (son 5) — TV/dergi kutularıyla senkron.
   const S = "video_id,kod,yonetici_ad,gorev,kanal_ad,video_baslik,video_tarih";
-  let q = `youtube_video?select=${S}&order=yayin.desc&limit=10`;
+  let q = `youtube_video?select=${S}&order=yayin.desc&limit=5`;   // ana sayfa da arama da en fazla 5
   if(aramaKod) q = `youtube_video?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${S}&order=yayin.desc&limit=5`;
   const rows = await sb(q);
   const head = document.getElementById("ytvHead"), box = document.getElementById("ytvFeed");
@@ -804,7 +823,7 @@ function sunCardHTML(r){
 async function loadSunum(){
   // Tablo yokken sb() [] döner → bölüm gizli kalır (güvenli açılış)
   const S = "kod,unvan,donem,yayin_tarihi,pdf_url,kaynak";
-  let q = `sunum?select=${S}&order=yayin_tarihi.desc&limit=10`;
+  let q = `sunum?select=${S}&order=yayin_tarihi.desc&limit=5`;   // ana sayfa da arama da en fazla 5
   if(aramaKod) q = `sunum?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${S}&order=yayin_tarihi.desc&limit=5`;
   const rows = await sb(q);
   const head = document.getElementById("sunHead"), box = document.getElementById("sunFeed");
