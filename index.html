@@ -256,24 +256,29 @@
   /* Yatırımcı sunumları — kimlik: çelik mavisi (kanal/dergi/youtube renklerinden ayrı).
      Belge listesi olduğu için kart değil, sıkı satır düzeni. */
   .sunhead h2::before{background:#e7ecf3}
-  a.sn{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:baseline;
-    background:var(--card);border:1px solid var(--line);border-left:3px solid var(--sunum);
-    border-radius:10px;padding:9px 13px;margin-bottom:7px;color:var(--tx);text-decoration:none}
-  @media (hover:hover){ a.sn:hover{background:#1b2433;border-color:#33405a} }
-  /* Kod sütunu SABİT genişlik → ünvanlar hep aynı hizadan başlar. Her satır ayrı
-     grid olduğu için otomatik genişlik satır satır değişiyordu; üstelik orantılı
-     yazı tipinde 5 harfli kodlar bile birbiriyle hizasızdı (TTRAK 46.8px vs
-     SKYMD 50.4px, ölçüldü 2026-07-22). 6.3ch ≈ en geniş 5 harfli kodu kapsar. */
-  .sn .kod{font-weight:800;font-size:13.5px;letter-spacing:.2px;min-width:6.3ch}
+  /* Akordiyon satır: 1. satır kod, 2. satır ünvan (sol) + dönem (sağ);
+     tıklayınca açılır ve ortada 'Sunuma git' düğmesi çıkar. */
+  .sn{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--sunum);
+    border-radius:10px;padding:9px 13px;margin-bottom:7px;color:var(--tx);cursor:pointer;
+    user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+  @media (hover:hover){ .sn:hover{background:#1b2433;border-color:#33405a} }
+  .sn .snust{display:flex;align-items:center;gap:8px}
+  .sn .kod{font-weight:800;font-size:13.5px;letter-spacing:.2px}
+  .sn .chev{margin-left:auto;color:var(--tx2);font-size:15px;line-height:1;transition:.2s}
+  .sn.open .chev{transform:rotate(180deg)}
+  .sn .snalt{display:flex;align-items:baseline;gap:10px;margin-top:3px}
   .sn .unv{color:var(--tx2);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .sn .don{color:var(--sunum);font-size:11.5px;font-weight:700;white-space:nowrap;
-    font-variant-numeric:tabular-nums}
+  .sn .don{margin-left:auto;color:var(--sunum);font-size:11.5px;font-weight:700;white-space:nowrap}
   .sn .kap{color:var(--tx3);font-size:10.5px;font-weight:700;margin-left:7px;
     border:1px solid var(--line);border-radius:5px;padding:1px 5px;white-space:nowrap}
-  @media(max-width:520px){
-    a.sn{grid-template-columns:auto minmax(0,1fr);row-gap:2px}
-    .sn .don{grid-column:1/-1}
-  }
+  .sn .snac{display:none;margin-top:10px;padding-top:9px;border-top:1px solid var(--line);
+    justify-content:center}
+  .sn.open .snac{display:flex}
+  .sn .git{display:inline-flex;align-items:center;gap:7px;padding:7px 18px;border-radius:999px;
+    border:1px solid var(--sunum);color:var(--sunum);font-size:13px;font-weight:700;
+    text-decoration:none;transition:.15s}
+  @media (hover:hover){ .sn .git:hover{background:var(--sunum);color:#0b1018} }
+  .sn .git svg{width:13px;height:13px;flex:0 0 auto}
   .rp .time{color:var(--tx3);font-size:12px}
   .rp .meta{position:absolute;left:15px;bottom:10px;display:flex;align-items:center;gap:6px}
   .rp .cnt{color:var(--tx3);font-size:12px}
@@ -686,6 +691,12 @@ document.getElementById("dergiFeed").addEventListener("click", e=>{
   const pb = e.target.closest(".paybtn");
   if(pb){ e.stopPropagation(); paylas(pb.closest(".rp")); }
 });
+// Sunum satırları: akordiyon aç/kapa ('Sunuma git' linki hariç)
+document.getElementById("sunFeed").addEventListener("click", e=>{
+  if(e.target.closest("a.git")) return;         // linke basıldıysa PDF'e gitsin
+  const el = e.target.closest(".sn"); if(!el) return;
+  el.classList.toggle("open");
+});
 
 /* ---- Son Dergi Demeçleri ---- */
 const DERGI_SEL = "grup,kod,etiket,dergi_ad,sayi,sayfa,manset,tarih,guncelleme,token";
@@ -761,13 +772,19 @@ async function loadYoutube(){
 }
 
 /* ---- Yatırımcı sunumları ---- */
+const PDFICO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v5h5"/><path d="M19 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v13z"/></svg>`;
 function sunCardHTML(r){
-  // Yalnız DÖNEM gösterilir (şirketin kendi etiketiyle). Yayın tarihi sıralamada
-  // kullanılır ama satırda görünmez — dönem zaten belgenin neyi kapsadığını söylüyor.
-  return `<a class="sn" href="${esc(r.pdf_url)}" target="_blank" rel="noopener">
-    <span class="kod">${esc(r.kod)}</span>
-    <span class="unv">${esc(r.unvan||"")}${r.kaynak==="KAP"?'<span class="kap">KAP</span>':""}</span>
-    <span class="don">${esc(r.donem||"")}</span></a>`;
+  // Akordiyon: 1. satır kod, 2. satır ünvan + dönem; açılınca 'Sunuma git'.
+  // Yalnız DÖNEM gösterilir (şirketin kendi etiketiyle); yayın tarihi sıralamada
+  // kullanılır ama satırda görünmez.
+  return `<div class="sn">
+    <div class="snust"><span class="kod">${esc(r.kod)}</span><span class="chev">▾</span></div>
+    <div class="snalt">
+      <span class="unv">${esc(r.unvan||"")}${r.kaynak==="KAP"?'<span class="kap">KAP</span>':""}</span>
+      <span class="don">${esc(r.donem||"")}</span>
+    </div>
+    <div class="snac"><a class="git" href="${esc(r.pdf_url)}" target="_blank" rel="noopener">${PDFICO}Sunuma git</a></div>
+  </div>`;
 }
 async function loadSunum(){
   // Tablo yokken sb() [] döner → bölüm gizli kalır (güvenli açılış)
