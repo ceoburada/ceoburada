@@ -314,8 +314,12 @@
      position:relative ŞART: static bırakılırsa ipucu balonu .rp'ye göre
      konumlanıp kartın dışına kayıyor. */
   .rp-dergi .manset{padding-bottom:14px}
+  .rp-dergi .manset::after{content:"";display:block;clear:both}   /* float taşmasın */
+  /* İkon metnin SONUNDA duruyor: float bulunduğu satıra yerleşir, yani SON
+     satırın sağına düşer; sığmazsa bir alt satıra iner. Metnin başında
+     dururken ilk satıra yapışıyordu (mobilde belirgindi, 2026-07-22). */
   .rp-dergi .paybtn{position:relative;right:auto;bottom:auto;float:right;
-    margin:0 0 6px 10px;width:28px;height:28px}
+    margin:0 0 0 10px;width:28px;height:28px}
   .rp.open .manset{display:none}
   .rp.open .cumleler{display:flex}
   .rp .cm{font-size:15px;line-height:1.5;color:#c4cddb}
@@ -743,7 +747,7 @@ function dergiCardHTML(r){
       <span class="badge badge-dergi">${esc(r.dergi_ad||"Dergi")}</span>
       <span class="time">${esc(r.sayi||"")}${r.sayfa?" · "+esc(r.sayfa):""}</span>
     </div>
-    <div class="manset">${r.token?`<span class="paybtn" aria-label="Bağlantıyı kopyala">${PAYICO}<span class="tip">Bağlantıyı kopyala</span></span>`:""}${esc(r.manset||"")}</div>
+    <div class="manset">${esc(r.manset||"")}${r.token?`<span class="paybtn" aria-label="Bağlantıyı kopyala">${PAYICO}<span class="tip">Bağlantıyı kopyala</span></span>`:""}</div>
   </div>`;
 }
 async function loadDergi(){
