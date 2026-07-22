@@ -29,9 +29,11 @@
     --tx:#e7ecf3; --tx2:#9aa7bd; --tx3:#6b7688;
     --acc:#3ea6ff; --ok:#28c76f; --live:#ff4d4f; --bell-on:#f5b301;  /* çan aktif rengi (altın); yeşil=#28c76f */
     /* EkoTürk 2026-07-21'de kırmızı→SARI: kırmızı, YouTube bölümünün kimliğine verildi */
-    --bloomberg:#ff7a00; --cnbce:#3ea6ff; --ekoturk:#f0b429; --apara:#12c9a6;
-    /* Demeç listesi için yumuşatılmış kanal tonları (net ama neon değil) */
-    --bloomberg-s:#e0902f; --cnbce-s:#5aa0da; --ekoturk-s:#d9a43b; --apara-s:#2fb69c;
+    --bloomberg:#ff7a00; --cnbce:#3ea6ff; --ekoturk:#ffd60a; --apara:#12c9a6;
+    /* Demeç listesi için yumuşatılmış kanal tonları (net ama neon değil).
+       EkoTürk saf sarıya çekildi (2026-07-22): önceki #d9a43b amber tonu
+       rozetlerde Bloomberg turuncusuyla karışıyordu. */
+    --bloomberg-s:#e0902f; --cnbce-s:#5aa0da; --ekoturk-s:#e8c93a; --apara-s:#2fb69c;
     --ytv:#ff4d4f; --ytv-s:#e26467;   /* YouTube bölümü (eski EkoTürk kırmızı ailesi) */
     --radius:14px;
   }
@@ -77,7 +79,7 @@
   .tab.active{color:#08131f;background:var(--acc);border-color:var(--acc)}
   .tab[data-k="Bloomberg"].active{background:var(--bloomberg);border-color:var(--bloomberg);color:#1a0d00}
   .tab[data-k="Cnbce"].active{background:var(--cnbce);border-color:var(--cnbce)}
-  .tab[data-k="EkoTurk"].active{background:var(--ekoturk);border-color:var(--ekoturk);color:#201700}
+  .tab[data-k="EkoTurk"].active{background:var(--ekoturk);border-color:var(--ekoturk);color:#231e00}
   .tab[data-k="Apara"].active{background:var(--apara);border-color:var(--apara);color:#00140f}
   /* Yayınları gizle/göster (mobil veri tasarrufu + salt okuma modu) */
   .vgiz{border-style:dashed;color:var(--tx3)}
@@ -207,7 +209,7 @@
   .rp .badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--tx2)}
   .rp .badge.k-Bloomberg{color:var(--bloomberg-s);border-color:#3a2c1e}
   .rp .badge.k-Cnbce{color:var(--cnbce-s);border-color:#222f3c}
-  .rp .badge.k-EkoTurk{color:var(--ekoturk-s);border-color:#3a2f1a}
+  .rp .badge.k-EkoTurk{color:var(--ekoturk-s);border-color:#3d3616}
   .rp .badge.k-Apara{color:var(--apara-s);border-color:#1f342e}
   /* Dergi balonları: mor tonu, ayrı rozet */
   .rp.rp-dergi{border-left-color:#a78bfa}
