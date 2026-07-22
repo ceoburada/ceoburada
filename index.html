@@ -217,11 +217,12 @@
   /* YouTube bölümü (küçük kapaklı kart) — kimlik: KIRMIZI (YouTube teması;
      EkoTürk aynı gün sarıya alındı, çakışma yok). Kart demeçler gibi tıklanmaz;
      yalnız KAPAK videoya götürür. Başlık noktası diğer bölümlerle aynı (beyaz). */
-  .yv{display:grid;grid-template-columns:118px minmax(0,1fr);gap:13px;align-items:start;
+  /* Metin solda, video kapağı SAĞDA (2026-07-22) */
+  .yv{display:grid;grid-template-columns:minmax(0,1fr) 148px;gap:13px;align-items:start;
     background:var(--card);border:1px solid var(--line);border-left:3px solid var(--ytv-s);
     border-radius:var(--radius);padding:12px 15px;margin-bottom:10px;color:var(--tx);
     user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}   /* demeçler gibi: metin seçilemez/kopyalanamaz */
-  .yv a.kapak{display:block;width:118px;aspect-ratio:16/9;border-radius:8px;overflow:hidden;
+  .yv a.kapak{display:block;width:148px;aspect-ratio:16/9;border-radius:8px;overflow:hidden;
     background:#0e1420;border:1px solid var(--line);margin-top:2px;position:relative}
   .yv a.kapak img{width:100%;height:100%;object-fit:cover;display:block}
   .yv a.kapak::after{content:"";position:absolute;inset:0;margin:auto;width:0;height:0;
@@ -233,14 +234,15 @@
   .yv .who{font-weight:800;font-size:14px}
   .yv .ytvbadge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;
     border:1px solid #382427;color:var(--ytv-s)}
-  .yv .time{color:var(--tx3);font-size:12px;margin-left:auto}
   .yv .cumle{display:block;margin:8px 0 0;font-size:15.5px;line-height:1.5}
   .yv .cumle .kanalad{font-weight:700}
   .yv .vbaslik{display:block;margin:7px 0 0;color:var(--tx2);font-size:13.5px;line-height:1.45}
-  .yv .vbaslik .vlbl{color:var(--tx3);font-size:11px;font-weight:700;letter-spacing:.4px;margin-right:8px}
+  /* "VİDEO" etiketi kaldırıldı; yerinde artık videonun TARİHİ duruyor */
+  .yv .vtarih{color:var(--tx3);font-size:11px;font-weight:700;letter-spacing:.4px;
+    margin-right:8px;font-variant-numeric:tabular-nums}
   @media(max-width:520px){
     .yv{grid-template-columns:minmax(0,1fr)}
-    .yv a.kapak{width:100%;max-width:220px}
+    .yv a.kapak{width:100%;max-width:240px;order:-1}   /* dar ekranda kapak en üstte */
   }
   .rp .time{color:var(--tx3);font-size:12px}
   .rp .meta{position:absolute;left:15px;bottom:10px;display:flex;align-items:center;gap:6px}
@@ -686,14 +688,16 @@ function ytvCardHTML(r){
     ? `${r.gorev?esc(r.gorev)+" ":""}${esc(ad)}, <span class="kanalad">${esc(r.kanal_ad||"")}</span> YouTube kanalında.`
     : `${esc(r.kod)} yönetiminden bir isim${r.gorev?" ("+esc(r.gorev)+")":""}, <span class="kanalad">${esc(r.kanal_ad||"")}</span> YouTube kanalında.`;
   const t = r.video_tarih ? `${r.video_tarih.slice(6,8)}.${r.video_tarih.slice(4,6)}.${r.video_tarih.slice(0,4)}` : "";
-  // Kart tıklanmaz (demeçler gibi); yalnız KAPAK videoya götürür
+  // Kart tıklanmaz (demeçler gibi); yalnız KAPAK videoya götürür.
+  // Kapak SAĞDA; tarih üst satırdan alınıp başlığın soluna kondu.
   return `<div class="yv">
-    <a class="kapak" href="https://youtu.be/${esc(r.video_id)}" target="_blank" rel="noopener" aria-label="Videoyu izle"><img loading="lazy" src="https://i.ytimg.com/vi/${esc(r.video_id)}/hqdefault.jpg" alt=""></a>
     <span class="kgov">
-      <span class="ust"><span class="who">${kim}</span><span class="ytvbadge">YouTube</span><span class="time">${t}</span></span>
+      <span class="ust"><span class="who">${kim}</span><span class="ytvbadge">YouTube</span></span>
       <span class="cumle">${cumle}</span>
-      <span class="vbaslik"><span class="vlbl">VİDEO</span>${esc(r.video_baslik||"")}</span>
-    </span></div>`;
+      <span class="vbaslik">${t?`<span class="vtarih">${t}</span>`:""}${esc(r.video_baslik||"")}</span>
+    </span>
+    <a class="kapak" href="https://youtu.be/${esc(r.video_id)}" target="_blank" rel="noopener" aria-label="Videoyu izle"><img loading="lazy" src="https://i.ytimg.com/vi/${esc(r.video_id)}/hqdefault.jpg" alt=""></a>
+    </div>`;
 }
 async function loadYoutube(){
   // Tablo henüz yokken sb() [] döner → bölüm gizli kalır (güvenli açılış).
