@@ -180,8 +180,8 @@
       grid-template-areas:"videos sag" "sol sag"}   /* sol: videolar + dergi/sunumlar · sağ: TV + YouTube */
     .sag{display:block;grid-area:sag;min-width:0}
     .sol{display:block;grid-area:sol;min-width:0}
-    /* Sunumlar, derginin listesinden net ayrılsın (aynı sütunda ardışık iki bölüm) */
-    .area-sunum .feedhead{margin-top:38px}
+    /* Sunum–dergi arası, YouTube'un TV demeçlerine olan mesafesiyle AYNI olsun
+       (ikisi de temel .feedhead margin'i = 26px; ayrı kural gereksiz). */
     .area-demec .feedhead{margin-top:0}
     .area-demec h2{margin-top:0}
     /* Yayınları gizle: demeçler sola, dergi sağa (yan yana) */
@@ -196,7 +196,9 @@
   /* Dar/dikey (stacked) düzende dergi bölümünü TV'den bir satır kadar daha ayır —
      mobil + dikey PC'de iki ayrı bölüm olduğu net anlaşılsın (≥1500 2-sütunda dokunma) */
   @media(max-width:1499px){
-    .area-dergi .feedhead, .area-ytv .feedhead, .area-sunum .feedhead{margin-top:46px} }
+    .area-dergi .feedhead, .area-ytv .feedhead{margin-top:46px}
+    /* Sunumlar dikeyde EN SON bölüm; girişi biraz daha nefesli olsun */
+    .area-sunum .feedhead{margin-top:64px} }
   .feedhead h2{margin:0;font-size:18px;letter-spacing:.2px}
   /* Başlık başında yanıp sönen kırık-beyaz nokta (markadaki kırmızının beyaz versiyonu) */
   .feedhead h2::before{content:"";display:inline-block;width:.55em;height:.55em;border-radius:50%;
@@ -760,12 +762,12 @@ async function loadYoutube(){
 
 /* ---- Yatırımcı sunumları ---- */
 function sunCardHTML(r){
-  const t = r.yayin_tarihi ? r.yayin_tarihi.slice(8,10)+"."+r.yayin_tarihi.slice(5,7)+"."+r.yayin_tarihi.slice(0,4) : "";
-  const don = esc(r.donem||"") + (t ? ` · ${t}` : "");
+  // Yalnız DÖNEM gösterilir (şirketin kendi etiketiyle). Yayın tarihi sıralamada
+  // kullanılır ama satırda görünmez — dönem zaten belgenin neyi kapsadığını söylüyor.
   return `<a class="sn" href="${esc(r.pdf_url)}" target="_blank" rel="noopener">
     <span class="kod">${esc(r.kod)}</span>
     <span class="unv">${esc(r.unvan||"")}${r.kaynak==="KAP"?'<span class="kap">KAP</span>':""}</span>
-    <span class="don">${don}</span></a>`;
+    <span class="don">${esc(r.donem||"")}</span></a>`;
 }
 async function loadSunum(){
   // Tablo yokken sb() [] döner → bölüm gizli kalır (güvenli açılış)
