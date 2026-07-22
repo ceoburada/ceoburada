@@ -271,13 +271,19 @@
   .sn .snalt{display:flex;align-items:baseline;gap:9px;margin-top:2px;min-width:0}
   .sn .unv{color:var(--tx2);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;
     white-space:nowrap;flex:0 1 auto;min-width:0}
-  .sn .don{color:var(--sunum);font-size:11.5px;font-weight:700;white-space:nowrap;flex:0 0 auto}
-  .sn .kap{color:var(--tx3);font-size:10.5px;font-weight:700;margin-left:7px;
+  /* KAP rozeti ünvanın hemen sağında; DÖNEM ise sağa itilir → PDF ikonunun soluna
+     komşu olur (kullanıcı düzeni 2026-07-22). */
+  .sn .kap{color:var(--tx3);font-size:10.5px;font-weight:700;flex:0 0 auto;
     border:1px solid var(--line);border-radius:5px;padding:1px 5px;white-space:nowrap}
-  .sn a.pdf{flex:0 0 auto;width:50px;height:50px;border-radius:9px;display:flex;
+  .sn .don{margin-left:auto;color:var(--sunum);font-size:11.5px;font-weight:700;
+    white-space:nowrap;flex:0 0 auto}
+  /* İkon C: yatay belge + "PDF" yazısı — simge tek başına yeterince belli
+     olmuyordu, yazı tereddüdü kaldırıyor. */
+  .sn a.pdf{flex:0 0 auto;width:78px;height:40px;border-radius:8px;display:flex;gap:6px;
     align-items:center;justify-content:center;border:1px solid var(--line);
     background:#0e1420;color:var(--tx3);opacity:.55;transition:.18s;text-decoration:none}
-  .sn a.pdf svg{width:22px;height:22px}
+  .sn a.pdf svg{width:19px;height:19px;flex:0 0 auto}
+  .sn a.pdf .pdfyazi{font-weight:800;font-size:11.5px;letter-spacing:.4px}
   @media (hover:hover){
     .sn a.pdf:hover{opacity:1;color:var(--sunum);border-color:var(--sunum);
       background:rgba(127,156,196,.12);box-shadow:0 0 0 3px rgba(127,156,196,.13)}
@@ -779,17 +785,18 @@ async function loadYoutube(){
 }
 
 /* ---- Yatırımcı sunumları ---- */
-// PDF belge simgesi: kıvrık köşeli sayfa + "PDF" satırları
-const PDFICO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2v6h6"/><path d="M19 22H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l5 5v13a2 2 0 0 1-2 2z"/><path d="M9 13h6M9 17h4"/></svg>`;
+// Kıvrık köşeli belge + "PDF" yazısı (varyasyon C — kullanıcı seçimi)
+const PDFICO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2v6h6"/><path d="M19 22H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l5 5v13a2 2 0 0 1-2 2z"/></svg><span class="pdfyazi">PDF</span>`;
 function sunCardHTML(r){
-  // Solda metin (kod / ünvan + dönem), sağda tıklanabilir PDF simgesi.
+  // Satır: kod / ünvan + KAP rozeti … dönem (sağa yaslı) + PDF düğmesi.
   // Yalnız DÖNEM gösterilir (şirketin kendi etiketiyle); yayın tarihi sıralamada
   // kullanılır ama satırda görünmez.
   return `<div class="sn">
     <div class="sngov">
       <div class="kod">${esc(r.kod)}</div>
       <div class="snalt">
-        <span class="unv">${esc(r.unvan||"")}${r.kaynak==="KAP"?'<span class="kap">KAP</span>':""}</span>
+        <span class="unv">${esc(r.unvan||"")}</span>
+        ${r.kaynak==="KAP"?'<span class="kap">KAP</span>':""}
         <span class="don">${esc(r.donem||"")}</span>
       </div>
     </div>
