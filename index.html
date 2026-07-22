@@ -196,9 +196,8 @@
   /* Dar/dikey (stacked) düzende dergi bölümünü TV'den bir satır kadar daha ayır —
      mobil + dikey PC'de iki ayrı bölüm olduğu net anlaşılsın (≥1500 2-sütunda dokunma) */
   @media(max-width:1499px){
-    .area-dergi .feedhead, .area-ytv .feedhead{margin-top:46px}
-    /* Sunumlar dikeyde EN SON bölüm; girişi biraz daha nefesli olsun */
-    .area-sunum .feedhead{margin-top:64px} }
+    /* Dikeyde tüm bölüm geçişleri AYNI boşlukla (sunum da dahil) */
+    .area-dergi .feedhead, .area-ytv .feedhead, .area-sunum .feedhead{margin-top:46px} }
   .feedhead h2{margin:0;font-size:18px;letter-spacing:.2px}
   /* Başlık başında yanıp sönen kırık-beyaz nokta (markadaki kırmızının beyaz versiyonu) */
   .feedhead h2::before{content:"";display:inline-block;width:.55em;height:.55em;border-radius:50%;
