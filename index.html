@@ -70,7 +70,12 @@
     /* Arama kutusu mobilde de başlıkla AYNI satırda: kalan alanı doldurur */
     .feedhead{flex-wrap:nowrap}
     .feedhead h2{flex:0 0 auto;white-space:nowrap}
-    .feedhead .search{margin-left:auto;width:auto;flex:1 1 auto;min-width:0;max-width:60vw}
+    /* Arama kutusu SABİT genişlik: 'flex:1 1 auto' ile kalan alanı doldurunca
+       başlık kısa olan bölümde (YouTube'da) kutu 181px'e, uzun başlıklıda 95px'e
+       düşüyordu — bölümler arası tutarsız duruyordu (ölçüldü 2026-07-22).
+       96px, en uzun başlık (Son Dergi Demeçleri) yanında da sığar; arama sayacı
+       çıkarsa daralabilsin diye shrink açık. */
+    .feedhead .search{margin-left:auto;flex:0 1 96px;width:96px;min-width:0;max-width:60vw}
   }
 
   .tabs{max-width:1200px;margin:0 auto;padding:12px 20px 0;display:flex;gap:8px;flex-wrap:wrap}
