@@ -69,13 +69,14 @@
     .tab{padding:5px 12px;font-size:13px}
     /* Arama kutusu mobilde de başlıkla AYNI satırda: kalan alanı doldurur */
     .feedhead{flex-wrap:nowrap}
-    .feedhead h2{flex:0 0 auto;white-space:nowrap}
-    /* Arama kutusu SABİT genişlik: 'flex:1 1 auto' ile kalan alanı doldurunca
-       başlık kısa olan bölümde (YouTube'da) kutu 181px'e, uzun başlıklıda 95px'e
-       düşüyordu — bölümler arası tutarsız duruyordu (ölçüldü 2026-07-22).
-       96px, en uzun başlık (Son Dergi Demeçleri) yanında da sığar; arama sayacı
-       çıkarsa daralabilsin diye shrink açık. */
-    .feedhead .search{margin-left:auto;flex:0 1 96px;width:96px;min-width:0;max-width:60vw}
+    /* Başlık mobilde 17px: 20px'te en uzun başlık (Son Dergi Demeçleri) 216px
+       yer kaplayıp arama kutusuna okunabilir genişlik bırakmıyordu. */
+    .feedhead h2{flex:0 0 auto;white-space:nowrap;font-size:17px}
+    /* Kutu SABİT genişlik (yoksa başlık kısa olan bölümde aşırı genişliyordu);
+       136px + kısaltılmış yer tutucu ile metin sığıyor. Sayaç çıkarsa daralsın
+       diye shrink açık. */
+    .feedhead .search{margin-left:auto;flex:0 1 136px;width:136px;min-width:0;max-width:60vw;
+      padding-left:29px;font-size:12.5px;background-position:9px center}
   }
 
   .tabs{max-width:1200px;margin:0 auto;padding:12px 20px 0;display:flex;gap:8px;flex-wrap:wrap}
@@ -598,6 +599,15 @@ function duzenAyarla(){
   B.forEach(k => kolB.appendChild(S[k]));
 }
 window.addEventListener("resize", duzenAyarla);
+
+/* Mobilde yer tutucu kısalır: "Ara (örn. THYAO)" dar kutuya sığmayıp kırpılıyordu. */
+function aramaYerTutucu(){
+  const dar = window.matchMedia("(max-width:600px)").matches;
+  const metin = dar ? "Ara (THYAO)" : "Ara (örn. THYAO)";
+  document.querySelectorAll(".search").forEach(i => { i.placeholder = metin; });
+}
+window.addEventListener("resize", aramaYerTutucu);
+aramaYerTutucu();
 
 function applyVideoGizli(){
   document.body.classList.toggle("novideo", videoGizli);
