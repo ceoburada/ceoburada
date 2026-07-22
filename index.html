@@ -663,8 +663,11 @@ async function loadDergi(){
 
 /* ---- YouTube bölümü ---- */
 function ytvCardHTML(r){
-  const kim = `${esc(r.kod)} · ${esc(r.yonetici_ad||"")}${r.gorev?" · "+esc(r.gorev):""}`;
-  const cumle = `${r.gorev?esc(r.gorev)+" ":""}${esc(r.yonetici_ad||"")}, <span class="kanalad">${esc(r.kanal_ad||"")}</span> YouTube kanalında.`;
+  const ad = r.yonetici_ad || "";   // unvan-sinyali eşleşmesinde isim olmayabilir
+  const kim = `${esc(r.kod)}${ad?" · "+esc(ad):""}${r.gorev?" · "+esc(r.gorev):""}`;
+  const cumle = ad
+    ? `${r.gorev?esc(r.gorev)+" ":""}${esc(ad)}, <span class="kanalad">${esc(r.kanal_ad||"")}</span> YouTube kanalında.`
+    : `${esc(r.kod)} yönetiminden bir isim${r.gorev?" ("+esc(r.gorev)+")":""}, <span class="kanalad">${esc(r.kanal_ad||"")}</span> YouTube kanalında.`;
   const t = r.video_tarih ? `${r.video_tarih.slice(6,8)}.${r.video_tarih.slice(4,6)}.${r.video_tarih.slice(0,4)}` : "";
   // Kart tıklanmaz (demeçler gibi); yalnız KAPAK videoya götürür
   return `<div class="yv">
