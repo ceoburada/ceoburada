@@ -240,7 +240,8 @@
     margin-right:8px;font-variant-numeric:tabular-nums}
   @media(max-width:520px){
     .yv{grid-template-columns:minmax(0,1fr)}
-    .yv a.kapak{width:100%;max-width:240px;order:-1}   /* dar ekranda kapak en üstte */
+    /* Dar ekranda kapak metnin ALTINDA (DOM sırası zaten böyle; order kullanılmaz) */
+    .yv a.kapak{width:100%;max-width:240px;margin-top:4px}
   }
   .rp .time{color:var(--tx3);font-size:12px}
   .rp .meta{position:absolute;left:15px;bottom:10px;display:flex;align-items:center;gap:6px}
