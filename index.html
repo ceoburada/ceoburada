@@ -35,6 +35,7 @@
        rozetlerde Bloomberg turuncusuyla karışıyordu. */
     --bloomberg-s:#e0902f; --cnbce-s:#5aa0da; --ekoturk-s:#e8c93a; --apara-s:#2fb69c;
     --ytv:#ff4d4f; --ytv-s:#e26467;   /* YouTube bölümü (eski EkoTürk kırmızı ailesi) */
+    --sunum:#7f9cc4;                  /* Yatırımcı sunumları — belge/çelik mavisi */
     --radius:14px;
   }
   *{box-sizing:border-box}
@@ -243,6 +244,23 @@
     /* Dar ekranda kapak metnin ALTINDA (DOM sırası zaten böyle; order kullanılmaz) */
     .yv a.kapak{width:100%;max-width:240px;margin-top:4px}
   }
+
+  /* Yatırımcı sunumları — kimlik: çelik mavisi (kanal/dergi/youtube renklerinden ayrı).
+     Belge listesi olduğu için kart değil, sıkı satır düzeni. */
+  .sunhead h2::before{background:#e7ecf3}
+  a.sn{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:baseline;
+    background:var(--card);border:1px solid var(--line);border-left:3px solid var(--sunum);
+    border-radius:10px;padding:9px 13px;margin-bottom:7px;color:var(--tx);text-decoration:none}
+  @media (hover:hover){ a.sn:hover{background:#1b2433;border-color:#33405a} }
+  .sn .kod{font-weight:800;font-size:13.5px;letter-spacing:.2px}
+  .sn .unv{color:var(--tx2);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sn .don{color:var(--sunum);font-size:11.5px;font-weight:700;white-space:nowrap;
+    font-variant-numeric:tabular-nums}
+  .sn .kap{color:var(--tx3);font-size:10.5px;font-weight:700;margin-left:5px}
+  @media(max-width:520px){
+    a.sn{grid-template-columns:auto minmax(0,1fr);row-gap:2px}
+    .sn .don{grid-column:1/-1}
+  }
   .rp .time{color:var(--tx3);font-size:12px}
   .rp .meta{position:absolute;left:15px;bottom:10px;display:flex;align-items:center;gap:6px}
   .rp .cnt{color:var(--tx3);font-size:12px}
@@ -403,6 +421,12 @@
       <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="dergiFeed"></div>
+    <!-- Yatırımcı sunumları: derginin HEMEN ALTINDA (aynı sütun; dar ekranda
+         en altta kalır). Tablo boşken başlık gizli. -->
+    <div class="feedhead sunhead" id="sunHead" hidden><h2>Yatırımcı Sunumları</h2><span class="cnt" id="sunCnt"></span>
+      <input id="searchSunum" class="search" type="search" inputmode="text" autocomplete="off"
+             maxlength="12" placeholder="Ara (örn. THYAO)"></div>
+    <div id="sunFeed"></div>
   </div>
 </main>
 <footer><div class="fcontact"><a class="xfoot" href="https://x.com/ceoburada" target="_blank" rel="noopener" aria-label="X'te takip et (@CEOBurada)"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a><a href="mailto:info@ceoburada.com">info@ceoburada.com</a></div><div class="flegal">Video yayınları, ilgili kanalların resmî YouTube canlı yayınlarından gömülerek (embed) gösterilir; tüm telif hakları ilgili yayıncılara aittir.<br>CEOBurada, ücretsiz bir bilgilendirme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.</div></footer>
@@ -719,6 +743,35 @@ async function loadYoutube(){
   box.innerHTML = rows.map(ytvCardHTML).join("");
 }
 
+/* ---- Yatırımcı sunumları ---- */
+function sunCardHTML(r){
+  const t = r.yayin_tarihi ? r.yayin_tarihi.slice(8,10)+"."+r.yayin_tarihi.slice(5,7)+"."+r.yayin_tarihi.slice(0,4) : "";
+  const don = esc(r.donem||"") + (t ? ` · ${t}` : "");
+  return `<a class="sn" href="${esc(r.pdf_url)}" target="_blank" rel="noopener">
+    <span class="kod">${esc(r.kod)}</span>
+    <span class="unv">${esc(r.unvan||"")}${r.kaynak==="KAP"?'<span class="kap">KAP</span>':""}</span>
+    <span class="don">${don}</span></a>`;
+}
+async function loadSunum(){
+  // Tablo yokken sb() [] döner → bölüm gizli kalır (güvenli açılış)
+  const S = "kod,unvan,donem,yayin_tarihi,pdf_url,kaynak";
+  let q = `sunum?select=${S}&order=yayin_tarihi.desc&limit=10`;
+  if(aramaKod) q = `sunum?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${S}&order=yayin_tarihi.desc&limit=5`;
+  const rows = await sb(q);
+  const head = document.getElementById("sunHead"), box = document.getElementById("sunFeed");
+  if(!head || !box) return;
+  const cnt = document.getElementById("sunCnt");
+  if(cnt) cnt.textContent = (aramaKod && rows.length) ? (rows.length >= 5 ? "en yeni 5" : `${rows.length} sunum`) : "";
+  if(!rows.length){
+    if(aramaKod){ head.hidden = false;
+      box.innerHTML = `<div class="empty">"${esc(aramaKod)}" için sunum bulunamadı.</div>`; }
+    else { head.hidden = true; box.innerHTML = ""; }
+    return;
+  }
+  head.hidden = false;
+  box.innerHTML = rows.map(sunCardHTML).join("");
+}
+
 /* ---- Canlı ID'ler ---- */
 let videolarCizildi = false;
 async function loadCanli(){
@@ -744,7 +797,7 @@ document.getElementById("tabs").addEventListener("click", e=>{
   t.classList.add("active");
   secili = t.dataset.k;
   document.querySelectorAll(".search").forEach(x=> x.value = "");   // sekmede tüm kutular temizlenir
-  if(aramaKod){ aramaKod = ""; loadDergi(); loadYoutube().catch(()=>{}); }   // arama temizlenince dergi+youtube da tazelensin
+  if(aramaKod){ aramaKod = ""; loadDergi(); loadYoutube().catch(()=>{}); loadSunum().catch(()=>{}); }   // arama temizlenince diğer bölümler de tazelensin
   renderVideos(); loadCanli(); loadFeed();   // loadCanli: geçilen kanalın ID'si bayatsa tazele (YouTube "hata" ihtimalini azaltır)
 });
 
@@ -762,7 +815,8 @@ document.getElementById("tabs").addEventListener("click", e=>{
         const v = inp.value.trim().toUpperCase();
         if(v === aramaKod) return;
         aramaKod = v;
-        loadFeed(); loadDergi(); loadYoutube().catch(()=>{});   // üçü birden filtrelenir
+        loadFeed(); loadDergi();                                  // dördü birden filtrelenir
+        loadYoutube().catch(()=>{}); loadSunum().catch(()=>{});
       }, 250);   // yazarken debounce
     });
   });
@@ -771,7 +825,8 @@ document.getElementById("tabs").addEventListener("click", e=>{
 async function tick(){
   try{ await loadFeed(); await loadDergi(); setStatus("güncel · "+new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})); }
   catch(e){ setStatus("bağlantı hatası"); }
-  loadYoutube().catch(()=>{});   // bölüm bağımsız; hata durumu ana akışı etkilemesin
+  loadYoutube().catch(()=>{});   // bölümler bağımsız; hata durumu ana akışı etkilemesin
+  loadSunum().catch(()=>{});
 }
 async function paylasilaniYukle(){   // ?r=<token> ile gelen demeci en üstte AÇIK göster
   if(!paylasilanToken) return;
@@ -800,6 +855,7 @@ async function paylasilaniYukle(){   // ?r=<token> ile gelen demeci en üstte A�
   setInterval(loadDergi, 60000);     // dergi akışı 60 sn'de bir (nadir değişir)
   setInterval(loadCanli, 300000);    // canlı ID'ler 5 dk'da bir
   setInterval(()=>loadYoutube().catch(()=>{}), 300000);   // YouTube bölümü 5 dk'da bir (günde bir değişir)
+  setInterval(()=>loadSunum().catch(()=>{}), 600000);     // sunumlar 10 dk'da bir (nadiren değişir)
 })();
 
 /* ---- Web push: canlı-çıkış bildirimi (favori yok, tüm abonelere yayın) ---- */
