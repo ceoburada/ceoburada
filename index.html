@@ -206,6 +206,10 @@
   @keyframes pulseW{0%{box-shadow:0 0 0 0 rgba(231,236,243,.5)}70%{box-shadow:0 0 0 8px rgba(231,236,243,0)}100%{box-shadow:0 0 0 0 rgba(231,236,243,0)}}
   .feedhead .cnt{color:var(--tx3);font-size:13px}
   #feed,#dergiFeed{display:flex;flex-direction:column;gap:12px}
+  /* YouTube ve sunum listeleri de flex+gap: kart üzerindeki margin-bottom
+     SONUNCU kartta da kalıp bölüm arası boşluğu şişiriyordu (2026-07-22). */
+  #ytvFeed{display:flex;flex-direction:column;gap:10px}
+  #sunFeed{display:flex;flex-direction:column;gap:7px}
   @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .rp{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--acc);
     border-radius:12px;overflow:hidden;animation:rise .3s ease;position:relative;
@@ -228,7 +232,7 @@
   /* Metin solda, video kapağı SAĞDA (2026-07-22) */
   .yv{display:grid;grid-template-columns:minmax(0,1fr) 148px;gap:13px;align-items:start;
     background:var(--card);border:1px solid var(--line);border-left:3px solid var(--ytv-s);
-    border-radius:var(--radius);padding:12px 15px;margin-bottom:10px;color:var(--tx);
+    border-radius:var(--radius);padding:12px 15px;color:var(--tx);
     user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}   /* demeçler gibi: metin seçilemez/kopyalanamaz */
   .yv a.kapak{display:block;width:148px;aspect-ratio:16/9;border-radius:8px;overflow:hidden;
     background:#0e1420;border:1px solid var(--line);margin-top:2px;position:relative}
@@ -260,7 +264,7 @@
      gelince parlar. Tıklanabilir tek öğe SİMGE (satırın kendisi değil). */
   .sn{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
     background:var(--card);border:1px solid var(--line);border-left:3px solid var(--sunum);
-    border-radius:10px;padding:9px 13px;margin-bottom:7px;color:var(--tx);
+    border-radius:10px;padding:9px 13px;color:var(--tx);
     user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   .sn .sngov{min-width:0}
   .sn .kod{font-weight:800;font-size:13.5px;letter-spacing:.2px}
