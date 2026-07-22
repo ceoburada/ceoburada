@@ -202,6 +202,29 @@
   /* Dergi balonları: mor tonu, ayrı rozet */
   .rp.rp-dergi{border-left-color:#a78bfa}
   .rp .badge.badge-dergi{color:#c4b5fd;border-color:#3a2f5a}
+  /* YouTube bölümü (küçük kapaklı kart) — kimlik: amber (kanal/dergi renkleriyle çakışmaz) */
+  .ytvhead h2::before{background:#e8b33f}
+  a.yv{display:grid;grid-template-columns:118px minmax(0,1fr);gap:13px;align-items:start;
+    background:var(--card);border:1px solid var(--line);border-left:3px solid #e8b33f;
+    border-radius:var(--radius);padding:12px 15px;margin-bottom:10px;color:var(--tx);text-decoration:none}
+  @media (hover:hover){ a.yv:hover{background:#1b2433} }
+  .yv .kapak{display:block;width:118px;aspect-ratio:16/9;border-radius:8px;overflow:hidden;
+    background:#0e1420;border:1px solid var(--line);margin-top:2px}
+  .yv .kapak img{width:100%;height:100%;object-fit:cover;display:block}
+  .yv .kgov{display:block;min-width:0}
+  .yv .ust{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .yv .who{font-weight:800;font-size:14px}
+  .yv .ytvbadge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;
+    border:1px solid #4a3b1e;color:#dcae52}
+  .yv .time{color:var(--tx3);font-size:12px;margin-left:auto}
+  .yv .cumle{display:block;margin:8px 0 0;font-size:15.5px;line-height:1.5}
+  .yv .cumle .kanalad{color:#dcae52;font-weight:700}
+  .yv .vbaslik{display:block;margin:7px 0 0;color:var(--tx2);font-size:13.5px;line-height:1.45}
+  .yv .vbaslik .vlbl{color:var(--tx3);font-size:11px;font-weight:700;letter-spacing:.4px;margin-right:8px}
+  @media(max-width:520px){
+    a.yv{grid-template-columns:minmax(0,1fr)}
+    .yv .kapak{width:100%;max-width:220px}
+  }
   .rp .time{color:var(--tx3);font-size:12px}
   .rp .meta{position:absolute;left:15px;bottom:10px;display:flex;align-items:center;gap:6px}
   .rp .cnt{color:var(--tx3);font-size:12px}
@@ -351,6 +374,9 @@
       <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="dergiFeed"></div>
+    <!-- YouTube bölümü: onaylı youtube_video kayıtları; tablo boşken başlık gizli -->
+    <div class="feedhead ytvhead" id="ytvHead" hidden><h2>YouTube'da</h2><span class="cnt" id="ytvCnt"></span></div>
+    <div id="ytvFeed"></div>
   </div>
 </main>
 <footer><div class="fcontact"><a class="xfoot" href="https://x.com/ceoburada" target="_blank" rel="noopener" aria-label="X'te takip et (@CEOBurada)"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a><a href="mailto:info@ceoburada.com">info@ceoburada.com</a></div><div class="flegal">Video yayınları, ilgili kanalların resmî YouTube canlı yayınlarından gömülerek (embed) gösterilir; tüm telif hakları ilgili yayıncılara aittir.<br>CEOBurada, ücretsiz bir bilgilendirme hizmetidir, yayıncı haklarını ihlal etmez ve yatırım tavsiyesi niteliği taşımaz.</div></footer>
@@ -627,6 +653,29 @@ async function loadDergi(){
   box.innerHTML = rows.map(dergiCardHTML).join("");
 }
 
+/* ---- YouTube bölümü ---- */
+function ytvCardHTML(r){
+  const kim = `${esc(r.kod)} · ${esc(r.yonetici_ad||"")}${r.gorev?" · "+esc(r.gorev):""}`;
+  const cumle = `${r.gorev?esc(r.gorev)+" ":""}${esc(r.yonetici_ad||"")}, <span class="kanalad">${esc(r.kanal_ad||"")}</span> YouTube kanalında.`;
+  const t = r.video_tarih ? `${r.video_tarih.slice(6,8)}.${r.video_tarih.slice(4,6)}.${r.video_tarih.slice(0,4)}` : "";
+  return `<a class="yv" href="https://youtu.be/${esc(r.video_id)}" target="_blank" rel="noopener">
+    <span class="kapak"><img loading="lazy" src="https://i.ytimg.com/vi/${esc(r.video_id)}/hqdefault.jpg" alt=""></span>
+    <span class="kgov">
+      <span class="ust"><span class="who">${kim}</span><span class="ytvbadge">YouTube</span><span class="time">${t}</span></span>
+      <span class="cumle">${cumle}</span>
+      <span class="vbaslik"><span class="vlbl">VİDEO</span>${esc(r.video_baslik||"")}</span>
+    </span></a>`;
+}
+async function loadYoutube(){
+  // Tablo henüz yokken sb() [] döner → bölüm gizli kalır (güvenli açılış)
+  const rows = await sb("youtube_video?select=video_id,kod,yonetici_ad,gorev,kanal_ad,video_baslik,video_tarih&order=yayin.desc&limit=10");
+  const head = document.getElementById("ytvHead"), box = document.getElementById("ytvFeed");
+  if(!head || !box) return;
+  if(!rows.length){ head.hidden = true; box.innerHTML = ""; return; }
+  head.hidden = false;
+  box.innerHTML = rows.map(ytvCardHTML).join("");
+}
+
 /* ---- Canlı ID'ler ---- */
 let videolarCizildi = false;
 async function loadCanli(){
@@ -678,6 +727,7 @@ document.getElementById("tabs").addEventListener("click", e=>{
 async function tick(){
   try{ await loadFeed(); await loadDergi(); setStatus("güncel · "+new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})); }
   catch(e){ setStatus("bağlantı hatası"); }
+  loadYoutube().catch(()=>{});   // bölüm bağımsız; hata durumu ana akışı etkilemesin
 }
 async function paylasilaniYukle(){   // ?r=<token> ile gelen demeci en üstte AÇIK göster
   if(!paylasilanToken) return;
@@ -705,6 +755,7 @@ async function paylasilaniYukle(){   // ?r=<token> ile gelen demeci en üstte A�
   setInterval(loadFeed, 30000);      // demeç akışı 30 sn'de bir
   setInterval(loadDergi, 60000);     // dergi akışı 60 sn'de bir (nadir değişir)
   setInterval(loadCanli, 300000);    // canlı ID'ler 5 dk'da bir
+  setInterval(()=>loadYoutube().catch(()=>{}), 300000);   // YouTube bölümü 5 dk'da bir (günde bir değişir)
 })();
 
 /* ---- Web push: canlı-çıkış bildirimi (favori yok, tüm abonelere yayın) ---- */
