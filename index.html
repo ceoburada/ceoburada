@@ -28,14 +28,12 @@
     --bg:#0b0e14; --bg2:#121722; --card:#161c28; --line:#232b3a;
     --tx:#e7ecf3; --tx2:#9aa7bd; --tx3:#6b7688;
     --acc:#3ea6ff; --ok:#28c76f; --live:#ff4d4f; --bell-on:#f5b301;  /* çan aktif rengi (altın); yeşil=#28c76f */
-    /* EkoTürk 2026-07-21'de kırmızı→SARI: kırmızı, YouTube bölümünün kimliğine verildi */
-    --bloomberg:#ff7a00; --cnbce:#3ea6ff; --ekoturk:#ffd60a; --apara:#12c9a6;
-    /* Demeç listesi için yumuşatılmış kanal tonları (net ama neon değil).
-       EkoTürk saf sarıya çekildi (2026-07-22): önceki #d9a43b amber tonu
-       rozetlerde Bloomberg turuncusuyla karışıyordu. */
-    --bloomberg-s:#e0902f; --cnbce-s:#5aa0da; --ekoturk-s:#e8c93a; --apara-s:#2fb69c;
+    /* 2026-07-22: kanal başına renk kodlaması KALDIRILDI. Dört kanal da tek
+       renkte (eski CNBC-e mavisi); ayrım rozetin yazısıyla yapılıyor. Boşalan
+       Bloomberg turuncusu sunumlar bölümüne, EkoTürk kırmızısı YouTube'a gitti. */
+    --tv:#3ea6ff; --tv-s:#5aa0da; --tv-kenar:#222f3c;
     --ytv:#ff4d4f; --ytv-s:#e26467;   /* YouTube bölümü (eski EkoTürk kırmızı ailesi) */
-    --sunum:#7f9cc4;                  /* Yatırımcı sunumları — belge/çelik mavisi */
+    --sunum:#ff7a00; --sunum-s:#e0902f;   /* Yatırımcı sunumları — eski Bloomberg turuncusu */
     --radius:14px;
   }
   *{box-sizing:border-box}
@@ -84,10 +82,8 @@
     color:var(--tx2);font-weight:600;font-size:14px;cursor:pointer;transition:.15s;user-select:none}
   @media (hover:hover){ .tab:hover{color:var(--tx);border-color:#33405a} }   /* mobilde sticky-hover parlaklık bırakmasın */
   .tab.active{color:#08131f;background:var(--acc);border-color:var(--acc)}
-  .tab[data-k="Bloomberg"].active{background:var(--bloomberg);border-color:var(--bloomberg);color:#1a0d00}
-  .tab[data-k="Cnbce"].active{background:var(--cnbce);border-color:var(--cnbce)}
-  .tab[data-k="EkoTurk"].active{background:var(--ekoturk);border-color:var(--ekoturk);color:#231e00}
-  .tab[data-k="Apara"].active{background:var(--apara);border-color:var(--apara);color:#00140f}
+  .tab[data-k="Bloomberg"].active,.tab[data-k="Cnbce"].active,
+  .tab[data-k="EkoTurk"].active,.tab[data-k="Apara"].active{background:var(--tv);border-color:var(--tv)}
   /* Yayınları gizle/göster (mobil veri tasarrufu + salt okuma modu) */
   .vgiz{border-style:dashed;color:var(--tx3)}
   @media (hover:hover){ .vgiz:hover{color:var(--tx)} }
@@ -152,8 +148,7 @@
   .vid .cap{position:absolute;left:10px;top:10px;z-index:2;display:flex;align-items:center;gap:7px;
     background:rgba(0,0,0,.62);padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;pointer-events:none}
   .vid .cap .lv{width:7px;height:7px;border-radius:50%;background:var(--live)}
-  .vid.k-Bloomberg .cap{color:var(--bloomberg)} .vid.k-Cnbce .cap{color:var(--cnbce)}
-  .vid.k-EkoTurk .cap{color:var(--ekoturk)} .vid.k-Apara .cap{color:var(--apara)}
+  .vid .cap{color:var(--tv)}
   /* Embed'e izin vermeyen kanal → YouTube'a giden kapak */
   .vid.ext{cursor:pointer;display:block}
   .vid.ext .thumb{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.62)}
@@ -215,15 +210,12 @@
   .rp{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--acc);
     border-radius:12px;overflow:hidden;animation:rise .3s ease;position:relative;
     user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-  .rp.k-Bloomberg{border-left-color:var(--bloomberg-s)} .rp.k-Cnbce{border-left-color:var(--cnbce-s)}
-  .rp.k-EkoTurk{border-left-color:var(--ekoturk-s)} .rp.k-Apara{border-left-color:var(--apara-s)}
+  .rp.k-Bloomberg,.rp.k-Cnbce,.rp.k-EkoTurk,.rp.k-Apara{border-left-color:var(--tv-s)}
   .rphead{display:flex;align-items:center;gap:9px;padding:12px 15px;user-select:none;flex-wrap:wrap}
   .rp .who{font-weight:800;font-size:14px}
   .rp .badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--tx2)}
-  .rp .badge.k-Bloomberg{color:var(--bloomberg-s);border-color:#3a2c1e}
-  .rp .badge.k-Cnbce{color:var(--cnbce-s);border-color:#222f3c}
-  .rp .badge.k-EkoTurk{color:var(--ekoturk-s);border-color:#3d3616}
-  .rp .badge.k-Apara{color:var(--apara-s);border-color:#1f342e}
+  .rp .badge.k-Bloomberg,.rp .badge.k-Cnbce,
+  .rp .badge.k-EkoTurk,.rp .badge.k-Apara{color:var(--tv-s);border-color:var(--tv-kenar)}
   /* Dergi balonları: mor tonu, ayrı rozet */
   .rp.rp-dergi{border-left-color:#a78bfa}
   .rp .badge.badge-dergi{color:#c4b5fd;border-color:#3a2f5a}
@@ -254,7 +246,7 @@
   @media(max-width:520px){
     .yv{grid-template-columns:minmax(0,1fr)}
     /* Dar ekranda kapak metnin ALTINDA (DOM sırası zaten böyle; order kullanılmaz) */
-    .yv a.kapak{width:100%;max-width:240px;margin-top:4px}
+    .yv a.kapak{width:100%;max-width:180px;margin-top:4px}
   }
 
   /* Yatırımcı sunumları — kimlik: çelik mavisi (kanal/dergi/youtube renklerinden ayrı).
@@ -269,14 +261,14 @@
     grid-template-columns:minmax(0,1fr) auto auto;
     grid-template-areas:"kod don pdf"
                         "unv don pdf";
-    background:var(--card);border:1px solid var(--line);border-left:3px solid var(--sunum);
+    background:var(--card);border:1px solid var(--line);border-left:3px solid var(--sunum-s);
     border-radius:10px;padding:9px 13px;color:var(--tx);
     user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   .sn .kod{grid-area:kod;align-self:end;font-weight:800;font-size:13.5px;letter-spacing:.2px}
   .sn .unvwrap{grid-area:unv;align-self:start;display:flex;align-items:baseline;gap:9px;min-width:0}
   .sn .unv{color:var(--tx2);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;
     white-space:nowrap;flex:0 1 auto;min-width:0}
-  .sn .don{grid-area:don;color:var(--sunum);font-size:11.5px;font-weight:700;white-space:nowrap}
+  .sn .don{grid-area:don;color:var(--sunum-s);font-size:11.5px;font-weight:700;white-space:nowrap}
   .sn .kap{color:var(--tx3);font-size:10.5px;font-weight:700;flex:0 0 auto;
     border:1px solid var(--line);border-radius:5px;padding:1px 5px;white-space:nowrap}
   /* İkon C: yatay belge + "PDF" yazısı — simge tek başına yeterince belli
@@ -288,7 +280,7 @@
   .sn a.pdf .pdfyazi{font-weight:800;font-size:12.2px;letter-spacing:.4px}
   @media (hover:hover){
     .sn a.pdf:hover{opacity:1;color:var(--sunum);border-color:var(--sunum);
-      background:rgba(127,156,196,.12);box-shadow:0 0 0 3px rgba(127,156,196,.13)}
+      background:rgba(255,122,0,.12);box-shadow:0 0 0 3px rgba(255,122,0,.13)}
   }
   .sn a.pdf:focus-visible{opacity:1;color:var(--sunum);border-color:var(--sunum);outline:none}
   /* Mobilde de dönem PC'deki gibi iki satıra yayılır ve dikey ortalanır —
