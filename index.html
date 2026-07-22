@@ -271,12 +271,11 @@
   .sn .snalt{display:flex;align-items:baseline;gap:9px;margin-top:2px;min-width:0}
   .sn .unv{color:var(--tx2);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;
     white-space:nowrap;flex:0 1 auto;min-width:0}
-  /* KAP rozeti ünvanın hemen sağında; DÖNEM ise sağa itilir → PDF ikonunun soluna
-     komşu olur (kullanıcı düzeni 2026-07-22). */
+  /* Sıra: ünvan → dönem → KAP rozeti (hepsi sola yaslı, birbirine yakın).
+     Dönemi sağa yaslamayı denedik, ünvandan kopunca kötü durdu. */
+  .sn .don{color:var(--sunum);font-size:11.5px;font-weight:700;white-space:nowrap;flex:0 0 auto}
   .sn .kap{color:var(--tx3);font-size:10.5px;font-weight:700;flex:0 0 auto;
     border:1px solid var(--line);border-radius:5px;padding:1px 5px;white-space:nowrap}
-  .sn .don{margin-left:auto;color:var(--sunum);font-size:11.5px;font-weight:700;
-    white-space:nowrap;flex:0 0 auto}
   /* İkon C: yatay belge + "PDF" yazısı — simge tek başına yeterince belli
      olmuyordu, yazı tereddüdü kaldırıyor. */
   .sn a.pdf{flex:0 0 auto;width:78px;height:40px;border-radius:8px;display:flex;gap:6px;
@@ -796,8 +795,8 @@ function sunCardHTML(r){
       <div class="kod">${esc(r.kod)}</div>
       <div class="snalt">
         <span class="unv">${esc(r.unvan||"")}</span>
-        ${r.kaynak==="KAP"?'<span class="kap">KAP</span>':""}
         <span class="don">${esc(r.donem||"")}</span>
+        ${r.kaynak==="KAP"?'<span class="kap">KAP</span>':""}
       </div>
     </div>
     <a class="pdf" href="${esc(r.pdf_url)}" target="_blank" rel="noopener"
