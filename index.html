@@ -183,7 +183,10 @@
   }
 
   /* Demeç akışı */
-  .feedhead{display:flex;align-items:baseline;gap:10px;margin:26px 2px 12px}
+  /* align-items:center — baseline'dayken başlık ile arama kutusu metin taban
+     çizgisine göre hizalanıyor, kutu daha uzun olduğu için merkezleri 2.9px
+     kayıyordu (hem mobil hem PC). center ikisini gerçekten ortalar. */
+  .feedhead{display:flex;align-items:center;gap:10px;margin:26px 2px 12px}
   /* Dar/dikey (stacked) düzende dergi bölümünü TV'den bir satır kadar daha ayır —
      mobil + dikey PC'de iki ayrı bölüm olduğu net anlaşılsın (≥1500 2-sütunda dokunma) */
   @media(max-width:1499px){
