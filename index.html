@@ -67,8 +67,6 @@
     .tab{padding:5px 12px;font-size:13px}
     /* Arama kutusu mobilde de başlıkla AYNI satırda: kalan alanı doldurur */
     .feedhead{flex-wrap:nowrap}
-    /* Başlık mobilde 17px: 20px'te en uzun başlık (Son Dergi Demeçleri) 216px
-       yer kaplayıp arama kutusuna okunabilir genişlik bırakmıyordu. */
     .feedhead h2{flex:0 0 auto;white-space:nowrap}
     /* Kutu SABİT genişlik (yoksa başlık kısa olan bölümde aşırı genişliyordu);
        136px + kısaltılmış yer tutucu ile metin sığıyor. Sayaç çıkarsa daralsın
@@ -191,16 +189,11 @@
   @media(max-width:1499px){
     /* Dikeyde tüm bölüm geçişleri AYNI boşlukla (sunum da dahil) */
     .area-dergi .feedhead, .area-ytv .feedhead, .area-sunum .feedhead{margin-top:46px} }
+  /* Başlıklar mobilde de 20px — masaüstüyle aynı. Küçültme gereği başlıklar
+     "Demeçleri/Sunumları" iken vardı; tekile çekilince (Son TV Demeci, Son Dergi
+     Demeci, Yatırımcı Sunumu) arama kutusuna 320px'te bile yer kalıyor.
+     Yer tutucu yine de ekrana göre kısalıyor (bkz. aramaYerTutucu). */
   .feedhead h2{margin:0;font-size:20px;letter-spacing:.2px}
-  /* Mobilde başlık 17px. Bu kural üstteki max-width:600px bloğunda DEĞİL, burada
-     durmalı: aynı özgüllükte olduğu için sonra gelen 20px'i ancak böyle ezer. */
-  /* Mobilde punto EKRANA GÖRE kademeli: başlık ile arama kutusu aynı satırda yer
-     için yarışıyor (darboğaz "Son Dergi Demeçleri"). Her eşik ölçülerek bulundu —
-     o genişlikte kutuya yer tutucunun sığdığı en büyük punto. Tavan 20px, yani
-     geniş telefonlarda masaüstüyle aynı. */
-  @media(max-width:600px){ .feedhead h2{font-size:17px} }                        /* 320-389px */
-  @media(min-width:390px) and (max-width:600px){ .feedhead h2{font-size:19px} }  /* 390-404px */
-  @media(min-width:405px) and (max-width:600px){ .feedhead h2{font-size:20px} }  /* 405-600px */
   /* Başlık başında yanıp sönen kırık-beyaz nokta (markadaki kırmızının beyaz versiyonu) */
   .feedhead h2::before{content:"";display:inline-block;width:.55em;height:.55em;border-radius:50%;
     background:#e7ecf3;vertical-align:.08em;margin-right:.45em;
@@ -466,7 +459,7 @@
     <div id="dergiFeed"></div>
   </div>
   <div class="area-sunum">
-    <div class="feedhead sunhead" id="sunHead" hidden><h2>Yatırımcı Sunumları</h2><span class="cnt" id="sunCnt"></span>
+    <div class="feedhead sunhead" id="sunHead" hidden><h2>Yatırımcı Sunumu</h2><span class="cnt" id="sunCnt"></span>
       <input id="searchSunum" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="sunFeed"></div>
