@@ -194,9 +194,8 @@
      Demeci, Yatırımcı Sunumu) arama kutusuna 320px'te bile yer kalıyor.
      Yer tutucu yine de ekrana göre kısalıyor (bkz. aramaYerTutucu). */
   .feedhead h2{margin:0;font-size:20px;letter-spacing:.2px}
-  /* Yalnız ÇOK dar ekranlar (320px iPhone SE / eski Android): 20px'te arama
-     kutusuna 1px pay kalıyordu, 18px'te 20px pay var. 340px üstü 20px'te rahat. */
-  @media(max-width:340px){ .feedhead h2{font-size:18px} }
+  /* Mobilde 18px: 20px masaüstünde iyi ama telefonda iri duruyordu. */
+  @media(max-width:600px){ .feedhead h2{font-size:18px} }
   /* Başlık başında yanıp sönen kırık-beyaz nokta (markadaki kırmızının beyaz versiyonu) */
   .feedhead h2::before{content:"";display:inline-block;width:.55em;height:.55em;border-radius:50%;
     background:#e7ecf3;vertical-align:.08em;margin-right:.45em;
