@@ -601,12 +601,13 @@ window.addEventListener("resize", duzenAyarla);
 /* Yer tutucu ekran daraldıkça kısalır — başlık ve kutu aynı satırda yer için
    yarışıyor, darboğaz "Son Dergi Demeçleri" başlığı.
      >600px : tam metin
-     ≤600px : "Ara (THYAO)"   (390px+ telefonlarda örnek kod ipucu korunur)
-     ≤380px : "Ara"           375px'te uzun metin ancak 2px payla sığıyordu; sistem
-                              fontu cihazdan cihaza değiştiği için (iOS/Android)
-                              o pay güvenli değil, kısa metne düşülüyor. */
+     ≤600px : "Ara (THYAO)"   (375px+ telefonlarda örnek kod ipucu korunur;
+                              başlık 18px'e inince 375px'te 18px pay oluştu)
+     ≤370px : "Ara"           360px'te uzun metne yalnız 6px pay kalıyor; sistem
+                              fontu cihazdan cihaza değiştiği için o pay güvenli
+                              değil, kısa metne düşülüyor. */
 function aramaYerTutucu(){
-  const metin = window.matchMedia("(max-width:380px)").matches ? "Ara"
+  const metin = window.matchMedia("(max-width:370px)").matches ? "Ara"
               : window.matchMedia("(max-width:600px)").matches ? "Ara (THYAO)"
               : "Ara (örn. THYAO)";
   document.querySelectorAll(".search").forEach(i => { i.placeholder = metin; });
