@@ -194,7 +194,13 @@
   .feedhead h2{margin:0;font-size:20px;letter-spacing:.2px}
   /* Mobilde başlık 17px. Bu kural üstteki max-width:600px bloğunda DEĞİL, burada
      durmalı: aynı özgüllükte olduğu için sonra gelen 20px'i ancak böyle ezer. */
-  @media(max-width:600px){ .feedhead h2{font-size:17px} }
+  /* Mobilde punto EKRANA GÖRE kademeli: başlık ile arama kutusu aynı satırda yer
+     için yarışıyor (darboğaz "Son Dergi Demeçleri"). Her eşik ölçülerek bulundu —
+     o genişlikte kutuya yer tutucunun sığdığı en büyük punto. Tavan 20px, yani
+     geniş telefonlarda masaüstüyle aynı. */
+  @media(max-width:600px){ .feedhead h2{font-size:17px} }                        /* 320-389px */
+  @media(min-width:390px) and (max-width:600px){ .feedhead h2{font-size:19px} }  /* 390-404px */
+  @media(min-width:405px) and (max-width:600px){ .feedhead h2{font-size:20px} }  /* 405-600px */
   /* Başlık başında yanıp sönen kırık-beyaz nokta (markadaki kırmızının beyaz versiyonu) */
   .feedhead h2::before{content:"";display:inline-block;width:.55em;height:.55em;border-radius:50%;
     background:#e7ecf3;vertical-align:.08em;margin-right:.45em;
@@ -442,7 +448,7 @@
       <div class="prozet">📌 Bu demeç sana paylaşıldı</div>
       <div id="paylasilan"></div>
     </div>
-    <div class="feedhead"><h2 id="feedTitle">Son TV Demeçleri</h2><span class="cnt" id="feedCnt"></span>
+    <div class="feedhead"><h2 id="feedTitle">Son TV Demeci</h2><span class="cnt" id="feedCnt"></span>
       <input id="search" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="feed"></div>
@@ -454,7 +460,7 @@
     <div id="ytvFeed"></div>
   </div>
   <div class="area-dergi">
-    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeçleri</h2><span class="cnt" id="dergiCnt"></span>
+    <div class="feedhead"><h2 id="dergiTitle">Son Dergi Demeci</h2><span class="cnt" id="dergiCnt"></span>
       <input id="searchDergi" class="search" type="search" inputmode="text" autocomplete="off"
              maxlength="12" placeholder="Ara (örn. THYAO)"></div>
     <div id="dergiFeed"></div>
@@ -600,10 +606,10 @@ window.addEventListener("resize", duzenAyarla);
 /* Yer tutucu ekran daraldıkça kısalır — başlık ve kutu aynı satırda yer için
    yarışıyor, darboğaz "Son Dergi Demeçleri" başlığı.
      >600px : tam metin
-     ≤600px : "Ara (THYAO)"   (375px'te sığar)
-     ≤380px : "Ara"           (360px Android'de üsttekiler kırpılıyordu) */
+     ≤600px : "Ara (THYAO)"   (375px iPhone'da sığar — örnek kod ipucu korunur)
+     ≤370px : "Ara"           (360px Android'de üstteki kırpılıyordu) */
 function aramaYerTutucu(){
-  const metin = window.matchMedia("(max-width:380px)").matches ? "Ara"
+  const metin = window.matchMedia("(max-width:370px)").matches ? "Ara"
               : window.matchMedia("(max-width:600px)").matches ? "Ara (THYAO)"
               : "Ara (örn. THYAO)";
   document.querySelectorAll(".search").forEach(i => { i.placeholder = metin; });
@@ -712,14 +718,14 @@ async function loadFeed(){
     // Şirket kodu araması: o koda ait son 5 röportaj (kanal filtresini ezer)
     lim = 5;
     q = `roportaj?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${SEL}&order=${SIRA}&limit=${lim}`;
-    baslik = secili==="all" ? "Son TV Demeçleri" : `${AD[secili]} — TV Demeçleri`;   // arama başlığı değiştirmez
+    baslik = secili==="all" ? "Son TV Demeci" : `${AD[secili]} — TV Demeci`;   // arama başlığı değiştirmez
     bosMesaj = `"${esc(aramaKod)}" için demeç bulunamadı.`;
   } else {
     // Tümü: son 15 röportaj · tek kanal: son 5 (sayfa taze ve kısa kalsın)
     lim = secili==="all" ? 15 : 5;
     q = `roportaj?select=${SEL}&order=${SIRA}&limit=${lim}`;
     if(secili!=="all") q += `&kanal=eq.${encodeURIComponent(secili)}`;
-    baslik = secili==="all" ? "Son TV Demeçleri" : `${AD[secili]} — TV Demeçleri`;
+    baslik = secili==="all" ? "Son TV Demeci" : `${AD[secili]} — TV Demeci`;
     bosMesaj = "Henüz onaylı demeç yok. Yeni açıklamalar geldikçe burada görünecek.";
   }
   const rows = await sb(q);
@@ -778,7 +784,7 @@ async function loadDergi(){
   if(aramaKod) q = `dergi?kod=ilike.${encodeURIComponent(aramaKod+"*")}&select=${DERGI_SEL}&order=guncelleme.desc&limit=5`;
   const rows = await sb(q);
   const box = document.getElementById("dergiFeed");
-  document.getElementById("dergiTitle").textContent = "Son Dergi Demeçleri";   // arama başlığı değiştirmez
+  document.getElementById("dergiTitle").textContent = "Son Dergi Demeci";   // arama başlığı değiştirmez
   const dergiCnt = document.getElementById("dergiCnt");
   if(dergiCnt) dergiCnt.textContent = (aramaKod && rows.length) ? (rows.length >= 5 ? "en yeni 5" : `${rows.length} demeç`) : "";
   const imza = JSON.stringify([aramaKod, rows]);
