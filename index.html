@@ -695,7 +695,9 @@ async function loadCumleler(el){
   const box = el.querySelector(".cumleler");
   if(box.dataset.loaded==="1") return;
   const grup = el.dataset.grup, manset = el.dataset.manset;
-  const rows = await sb(`demecler?grup=eq.${encodeURIComponent(grup)}&select=saat,chunk,cumle&order=chunk.asc,id.asc`);
+  // yayinda=false → 15 cümle sınırında elenenler. Supabase'de DURUYOR (kaybolmuyor),
+  // sadece sitede gösterilmiyor; ileride geri almak tek UPDATE.
+  const rows = await sb(`demecler?grup=eq.${encodeURIComponent(grup)}&yayinda=is.true&select=saat,chunk,cumle&order=chunk.asc,id.asc`);
   box.innerHTML = rows.map(x=>{
     const mn = (x.cumle===manset);
     return `<div class="cm${mn?" mn":""}"><span class="cmt">${esc(saatKisa(x.saat))}</span>${esc(x.cumle)}</div>`;
